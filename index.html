@@ -1,0 +1,1500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cable & Internet Billing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root{
+    --paper:#F5F3ED;
+    --ink:#1C2430;
+    --ink-soft:#5B6472;
+    --surface:#FFFFFF;
+    --border:#E3DFD3;
+    --accent:#24406B;
+    --accent-hover:#1B3050;
+    --accent-soft:#E7ECF4;
+    --green:#1F9D74;
+    --green-soft:#E4F5EE;
+    --amber:#C6821F;
+    --amber-soft:#FBF0DC;
+    --red:#C24338;
+    --red-soft:#FBE7E5;
+    --radius:10px;
+    --shadow:0 1px 2px rgba(28,36,48,.06),0 6px 16px rgba(28,36,48,.05);
+    --font-display:'Space Grotesk','Noto Sans Tamil',sans-serif;
+    --font-body:'Inter','Noto Sans Tamil',sans-serif;
+    --font-mono:'JetBrains Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--font-body);
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{font-family:var(--font-display);letter-spacing:-0.01em;}
+  button{font-family:inherit;cursor:pointer;}
+  input,select,textarea{font-family:inherit;}
+  #root{min-height:100vh;display:flex;}
+
+  /* ---------- Sidebar (desktop) ---------- */
+  .sidebar{
+    width:224px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);
+    display:flex;flex-direction:column;padding:20px 14px;position:sticky;top:0;height:100vh;
+  }
+  .brand{display:flex;align-items:center;gap:10px;padding:6px 8px 22px;}
+  .brand-mark{height:32px;width:auto;flex-shrink:0;object-fit:contain;}
+  .brand-name{font-family:var(--font-display);font-weight:700;font-size:15.5px;line-height:1.2;color:var(--ink);}
+  .nav{display:flex;flex-direction:column;gap:3px;flex:1;}
+  .nav-item{
+    display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:8px;border:none;
+    background:transparent;color:var(--ink-soft);font-size:14.5px;font-weight:600;text-align:left;width:100%;
+    transition:background .12s ease,color .12s ease;
+  }
+  .nav-item svg{flex-shrink:0;}
+  .nav-item:hover{background:var(--paper);color:var(--ink);}
+  .nav-item.active{background:var(--accent-soft);color:var(--accent);}
+  .lang-toggle{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-top:10px;}
+  .lang-toggle button{flex:1;padding:9px 4px;border:none;background:var(--surface);color:var(--ink-soft);font-weight:700;font-size:13px;}
+  .lang-toggle button.active{background:var(--accent);color:#fff;}
+
+  /* ---------- Mobile top bar & bottom nav ---------- */
+  .mobile-top{display:none;position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--border);
+    padding:12px 14px;align-items:center;justify-content:space-between;}
+  .bottom-nav{display:none;}
+
+  main{flex:1;min-width:0;padding:28px 32px 60px;max-width:1080px;}
+  .page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:22px;flex-wrap:wrap;}
+  .page-head h1{font-size:23px;margin:0 0 4px;}
+  .page-sub{color:var(--ink-soft);font-size:13.5px;margin:0;}
+  .btn{
+    display:inline-flex;align-items:center;gap:7px;padding:10px 16px;border-radius:8px;border:1px solid transparent;
+    font-weight:700;font-size:14px;background:var(--accent);color:#fff;white-space:nowrap;
+  }
+  .btn:hover{background:var(--accent-hover);}
+  .btn.secondary{background:var(--surface);border-color:var(--border);color:var(--ink);}
+  .btn.secondary:hover{background:var(--paper);}
+  .btn.danger{background:var(--red-soft);color:var(--red);}
+  .btn.danger:hover{background:#f6d8d5;}
+  .btn.block{width:100%;justify-content:center;}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+  .btn-sm{padding:6px 10px;font-size:12.5px;border-radius:7px;}
+  .icon-btn{border:1px solid var(--border);background:var(--surface);border-radius:7px;padding:6px 8px;color:var(--ink-soft);}
+  .icon-btn:hover{color:var(--ink);background:var(--paper);}
+
+  /* ---------- Cards / stats ---------- */
+  .grid-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:22px;}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);}
+  .stat-label{font-size:12px;color:var(--ink-soft);font-weight:600;text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px;}
+  .stat-value{font-family:var(--font-display);font-size:26px;font-weight:700;}
+  .stat-value.green{color:var(--green);} .stat-value.amber{color:var(--amber);} .stat-value.red{color:var(--red);}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);}
+  .card-pad{padding:18px;}
+  .section-title{font-size:14.5px;font-weight:700;margin:0 0 12px;display:flex;align-items:center;justify-content:space-between;}
+
+  .banner{display:flex;gap:10px;align-items:flex-start;background:var(--amber-soft);border:1px solid #EAD3A0;color:#7A5716;
+    border-radius:var(--radius);padding:13px 15px;margin-bottom:20px;font-size:13.5px;line-height:1.5;}
+  .banner button{margin-top:6px;}
+
+  /* ---------- Lists / tables ---------- */
+  .list{display:flex;flex-direction:column;gap:10px;}
+  .row-card{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--border);
+    border-radius:var(--radius);padding:13px 15px;box-shadow:var(--shadow);}
+  .row-main{flex:1;min-width:0;}
+  .row-title{font-weight:700;font-size:14.5px;margin-bottom:2px;}
+  .row-sub{font-size:12.5px;color:var(--ink-soft);display:flex;flex-wrap:wrap;gap:4px 10px;}
+  .row-actions{display:flex;gap:6px;flex-shrink:0;}
+  .pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:99px;font-size:11.5px;font-weight:700;}
+  .pill.green{background:var(--green-soft);color:var(--green);}
+  .pill.amber{background:var(--amber-soft);color:var(--amber);}
+  .pill.red{background:var(--red-soft);color:var(--red);}
+  .pill.grey{background:#EDEBE4;color:var(--ink-soft);}
+
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.03em;color:var(--ink-soft);
+    padding:9px 10px;border-bottom:1px solid var(--border);}
+  td{padding:10px;border-bottom:1px solid var(--border);}
+  tr:last-child td{border-bottom:none;}
+  .empty-state{text-align:center;padding:44px 20px;color:var(--ink-soft);}
+  .empty-state .big{font-size:34px;margin-bottom:8px;}
+
+  /* ---------- Form ---------- */
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:12.5px;font-weight:700;color:var(--ink-soft);margin-bottom:6px;}
+  .field input,.field select,.field textarea{
+    width:100%;padding:10px 11px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--paper);color:var(--ink);
+  }
+  .field input:focus,.field select:focus,.field textarea:focus{outline:2px solid var(--accent);outline-offset:1px;background:var(--surface);}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .radio-group{display:flex;gap:8px;}
+  .radio-opt{flex:1;border:1px solid var(--border);border-radius:8px;padding:9px 8px;text-align:center;font-size:13px;font-weight:600;color:var(--ink-soft);}
+  .radio-opt.checked{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);}
+
+  /* ---------- Modal ---------- */
+  .overlay{position:fixed;inset:0;background:rgba(28,36,48,.45);display:none;align-items:flex-start;justify-content:center;
+    padding:40px 16px;overflow-y:auto;z-index:100;}
+  .overlay.open{display:flex;}
+  .modal{background:var(--surface);border-radius:14px;width:100%;max-width:440px;box-shadow:0 20px 50px rgba(0,0,0,.25);}
+  .modal-head{padding:18px 20px 4px;display:flex;align-items:center;justify-content:space-between;}
+  .modal-head h3{margin:0;font-size:17px;}
+  .modal-close{border:none;background:none;font-size:20px;color:var(--ink-soft);padding:4px 8px;}
+  .modal-body{padding:14px 20px 4px;}
+  .modal-foot{padding:14px 20px 20px;display:flex;gap:10px;}
+  .modal-foot .btn{flex:1;}
+
+  /* ---------- Collect / Receipt ---------- */
+  .customer-search{position:relative;}
+  .suggest-list{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface);border:1px solid var(--border);
+    border-radius:8px;box-shadow:var(--shadow);max-height:220px;overflow-y:auto;z-index:5;}
+  .suggest-item{padding:9px 12px;font-size:13.5px;border-bottom:1px solid var(--border);}
+  .suggest-item:last-child{border-bottom:none;}
+  .suggest-item:hover{background:var(--paper);}
+  .selected-customer{background:var(--accent-soft);border:1px solid #C4D2E8;border-radius:8px;padding:12px 14px;margin-bottom:14px;}
+  .selected-customer .name{font-weight:700;font-size:15px;}
+  .selected-customer .meta{font-size:12.5px;color:var(--ink-soft);margin-top:2px;}
+
+  .receipt{max-width:340px;margin:0 auto;}
+  .receipt-notch{height:16px;background:radial-gradient(circle 8px at 8px 8px,var(--paper) 8px,transparent 8px) repeat-x;background-size:16px 16px;}
+  .receipt-body{background:var(--surface);border-left:1px solid var(--border);border-right:1px solid var(--border);padding:22px 22px 8px;text-align:center;}
+  .receipt-biz{font-family:var(--font-display);font-weight:700;font-size:15px;}
+  .receipt-sub{font-size:11.5px;color:var(--ink-soft);margin-top:2px;}
+  .receipt-dash{border-top:1.5px dashed var(--border);margin:16px 0;}
+  .receipt-amt{font-family:var(--font-mono);font-size:30px;font-weight:700;color:var(--accent);}
+  .receipt-line{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink-soft);padding:3px 0;text-align:left;}
+  .receipt-line span:last-child{color:var(--ink);font-weight:600;}
+  #qrHolder{display:flex;justify-content:center;margin:14px 0 4px;}
+  .receipt-foot{padding:0 22px 22px;text-align:center;font-size:11px;color:var(--ink-soft);}
+
+  /* ---------- Manage tabs ---------- */
+  .subtabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap;}
+  .subtab{padding:8px 14px;border-radius:99px;border:1px solid var(--border);background:var(--surface);font-size:13px;font-weight:700;color:var(--ink-soft);}
+  .subtab.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+  .filter-bar{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px;align-items:flex-end;}
+  .filter-item label{display:block;font-size:11.5px;font-weight:700;color:var(--ink-soft);margin-bottom:5px;}
+  .filter-item input,.filter-item select{padding:8px 10px;border:1px solid var(--border);border-radius:7px;font-size:13px;background:var(--surface);}
+
+  .signal{display:inline-flex;align-items:flex-end;gap:2px;height:14px;}
+  .signal i{display:block;width:3px;border-radius:1px;background:#D8D4C8;}
+  .signal i:nth-child(1){height:5px;} .signal i:nth-child(2){height:9px;} .signal i:nth-child(3){height:14px;}
+
+  @media(max-width:900px){
+    .grid-stats{grid-template-columns:1fr 1fr;}
+    .field-row{grid-template-columns:1fr;}
+  }
+  @media(max-width:760px){
+    .sidebar{display:none;}
+    .mobile-top{display:flex;}
+    main{padding:18px 14px 90px;}
+    .bottom-nav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);
+      z-index:20;padding:6px 4px calc(6px + env(safe-area-inset-bottom));}
+    .bottom-nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;
+      color:var(--ink-soft);font-size:10.5px;font-weight:700;padding:5px 2px;border-radius:8px;}
+    .bottom-nav button.active{color:var(--accent);}
+    .grid-stats{grid-template-columns:1fr 1fr;}
+    .page-head{flex-direction:column;}
+    .page-head .btn{width:100%;justify-content:center;}
+  }
+  @media print{
+    .sidebar,.mobile-top,.bottom-nav,.no-print{display:none !important;}
+    main{padding:0;max-width:100%;}
+    body{background:#fff;}
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-head"><h3 id="modalTitle"></h3><button class="modal-close" id="modalCloseBtn">&times;</button></div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot" id="modalFoot"></div>
+  </div>
+</div>
+
+<script>
+/* ================= DATA LAYER ================= */
+const STORAGE_KEY='cable-billing-data-v1';
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const todayStr=()=>new Date().toISOString().slice(0,10);
+const esc=(s)=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function defaultData(){
+  return{
+    settings:{businessName:'',payeeName:'',upiId:'',language:'en'},
+    areas:[],employees:[],packages:[],customers:[],payments:[],tickets:[]
+  };
+}
+let DATA=defaultData();
+
+/* Embedded starter customer list (imported 18-Jul-2026) */
+const SEED_CUSTOMERS_TEXT="";
+const SEED_VERSION="v1";
+const SEED_PACKAGES_TEXT="";
+const SEED_PKG_VERSION="v1";
+const SEED_EMPLOYEES_TEXT="";
+const SEED_EMP_VERSION="v1";
+
+async function loadData(){
+  try{
+    const res=await window.storage.get(STORAGE_KEY,false);
+    if(res&&res.value){DATA=JSON.parse(res.value);}
+  }catch(e){ /* no data yet, keep defaults */ }
+  if(!DATA.meta)DATA.meta={};
+  if(!DATA.tickets)DATA.tickets=[];
+  if(DATA.meta.seedVersion!==SEED_VERSION&&typeof SEED_CUSTOMERS_TEXT==='string'&&SEED_CUSTOMERS_TEXT.length>0){
+    bulkImportCore(SEED_CUSTOMERS_TEXT);
+    DATA.meta.seedVersion=SEED_VERSION;
+    await saveData();
+  }
+  if(DATA.meta.pkgSeedVersion!==SEED_PKG_VERSION&&typeof SEED_PACKAGES_TEXT==='string'&&SEED_PACKAGES_TEXT.length>0){
+    bulkPkgImportCore(SEED_PACKAGES_TEXT);
+    DATA.meta.pkgSeedVersion=SEED_PKG_VERSION;
+    await saveData();
+  }
+  if(!DATA.meta.msoRenameV1){
+    DATA.packages.forEach(p=>{
+      if(p.name.includes('(ACV)'))p.name=p.name.replace('(ACV)','(SCV)');
+      if(p.name.includes('(VK DIGITAL)'))p.name=p.name.replace('(VK DIGITAL)','(GTPL)');
+    });
+    DATA.meta.msoRenameV1=true;
+    await saveData();
+  }
+  if(!DATA.meta.msoRenameV2){
+    DATA.packages.forEach(p=>{
+      if(p.name.includes('(TCCL)'))p.name=p.name.replace('(TCCL)','(GTPL)');
+      if(p.name.includes('(ACV)'))p.name=p.name.replace('(ACV)','(SCV)');
+    });
+    DATA.meta.msoRenameV2=true;
+    await saveData();
+  }
+  if(!DATA.meta.bizNameSeeded){
+    if(!DATA.settings.businessName)DATA.settings.businessName='Megadhoodh Cable';
+    DATA.meta.bizNameSeeded=true;
+    await saveData();
+  }
+  if(DATA.meta.empSeedVersion!==SEED_EMP_VERSION&&typeof SEED_EMPLOYEES_TEXT==='string'&&SEED_EMPLOYEES_TEXT.length>0){
+    bulkEmpImportCore(SEED_EMPLOYEES_TEXT);
+    DATA.meta.empSeedVersion=SEED_EMP_VERSION;
+    await saveData();
+  }
+  render();
+}
+let saving=false;
+async function saveData(){
+  try{ await window.storage.set(STORAGE_KEY,JSON.stringify(DATA),false); }
+  catch(e){ console.error('save failed',e); }
+}
+
+/* ================= I18N ================= */
+const T={
+en:{
+  appName:"Cable & Net Billing", home:"Home", customers:"Customers", collect:"Collect", reports:"Reports", manage:"Manage",
+  totalCustomers:"Total Customers", activeConnections:"Active Connections", thisMonthCollection:"This Month Collection", dueThisMonthLbl:"Due This Month",
+  quickActions:"Quick Actions", addCustomer:"Add Customer", collectPayment:"Collect Payment", recentPayments:"Recent Payments", noPayments:"No payments recorded yet",
+  setupBanner:"Add your bank UPI ID in Manage \u2192 Settings so you can generate payment QR codes for customers.", goSettings:"Go to Settings",
+  yourCustomers:"Your Customers", search:"Search name or phone", noCustomers:"No customers yet", addFirstCustomer:"Add your first customer to get started",
+  editCustomer:"Edit Customer", name:"Full Name", phone:"Phone Number", address:"Address", area:"Area", package:"Package", connNo:"Connection / STB No. (optional)",
+  status:"Status", active:"Active", inactive:"Inactive", save:"Save", cancel:"Cancel", delete:"Delete", edit:"Edit",
+  selectArea:"Select area", selectPackage:"Select package", noAreaWarn:"Please add an Area first in Manage \u2192 Areas.", noPackageWarn:"Please add a Package first in Manage \u2192 Packages.",
+  confirmDelete:"Delete this? This cannot be undone.", month:"/mo",
+  collectTitle:"Collect Payment", selectCustomer:"Search & select customer", noResults:"No matches", changeCustomer:"Change",
+  amount:"Amount", employee:"Collected By", date:"Date", method:"Payment Method", cash:"Cash", upi:"UPI / QR",
+  generateQR:"Generate QR Code", scanToPay:"Scan to Pay", savePayment:"Save Payment", paymentSaved:"Payment saved!",
+  setUpiFirst:"Set your UPI ID in Manage \u2192 Settings to enable QR payments.",
+  reportsTitle:"Reports", from:"From", to:"To", employeeFilter:"Employee", areaFilter:"Area", allEmployees:"All Employees", allAreas:"All Areas",
+  totalCollected:"Total Collected", entries:"entries", print:"Print", tblDate:"Date", tblCustomer:"Customer", tblArea:"Area", tblPackage:"Package", tblAmount:"Amount", tblMethod:"Method", tblEmployee:"Employee",
+  manageTitle:"Manage", areas:"Areas", packages:"Packages", employees:"Employees", settings:"Settings",
+  addArea:"Add Area", areaName:"Area Name", noAreas:"No areas added yet", usedBy:"used by",
+  addPackage:"Add Package", packageName:"Package Name", packageType:"Type", packagePrice:"Monthly Price", cableTv:"Cable TV", internet:"Internet", combo:"Combo (TV + Internet)", noPackages:"No packages added yet",
+  addEmployee:"Add Employee", employeeName:"Employee Name", noEmployees:"No employees added yet",
+  employeePhone:"Phone Number", employeeRole:"Role (e.g. Collection Agent)",
+  bulkAddEmp:"Bulk Add", bulkAddEmpTitle:"Bulk Add Employees", bulkAddEmpHint:"Paste one employee per line. Separate details with a | (pipe) symbol.",
+  bulkAddEmpFormat:"Format: Name | Phone | Role | Status", bulkAddEmpOptional:"Phone, Role and Status are optional (Status: active or inactive).",
+  bulkAddEmpPlaceholder:"Ravi Kumar | 9876543210 | Collection Agent | active", empsToAdd:"employees will be added", empsSkipped:"already existing employees were skipped", noValidEmpLines:"No valid employee lines found. Check the format and try again.",
+  tickets:"Tickets", ticketsTitle:"Complaints & Tickets", addTicket:"Add Ticket", ticketCustomer:"Customer", ticketType:"Issue Type", ticketDesc:"Description (optional)",
+  typeNoSignal:"No Signal", typeNetIssue:"Internet Not Working", typeBillingIssue:"Billing Issue", typeSTB:"Set-top Box Problem", typeOther:"Other",
+  statusOpen:"Open", statusInProgress:"In Progress", statusResolved:"Resolved", assignedTo:"Assigned To", noAssignee:"Unassigned",
+  noTickets:"No tickets yet", filterStatus:"Status", allStatuses:"All", start:"Start", resolve:"Resolve", reopen:"Reopen",
+  openTickets:"Open Tickets", selectCustomerFirst:"Please select a customer",
+  viewStatement:"Statement", statementTitle:"Customer Statement", statementBalance:"Balance Due", statementPackage:"Package", statementLastPayment:"Last Payment",
+  shareWhatsApp:"Share on WhatsApp", shareSMS:"Share via SMS", sendReminder:"Send Reminder", noPhoneWarn:"This customer has no phone number saved.",
+  shareReceiptWhatsApp:"Share Receipt on WhatsApp", collectAnother:"Collect Another Payment", done:"Done", never:"Never",
+  settingsTitle:"Business Settings", businessName:"Business Name", payeeName:"Payee Name (as per bank)", upiIdLabel:"UPI ID", upiHint:"e.g. yourname@okhdfcbank \u2014 shown on the QR code customers scan to pay",
+  languageLabel:"App Language", saveSettings:"Save Settings", settingsSaved:"Settings saved",
+  paid:"Paid", due:"Due", customersCount:"customers", packagesCount:"packages",
+  backupTitle:"Backup & Restore", backupDesc:"Your data is already saved automatically on this device. Use these if you also want a copy in Google Drive, or to move your data to another device.",
+  downloadBackup:"Download Backup File", backupToDrive:"Backup to Google Drive", driveSentHint:"This sends your data into the chat so Claude can save it to your connected Google Drive as a backup file and a Google Sheet.",
+  restoreBackup:"Restore Backup", restoreHint:"Choose a backup file, or paste backup text you received from Claude.", chooseFile:"Choose File",
+  pasteBackupLabel:"Or paste backup text here", restore:"Restore", restoreConfirm:"This replaces all current data on this device with the backup. Continue?",
+  restoreSuccess:"Data restored!", restoreError:"Could not read that backup. Please check the file or text.", askDriveRestore:"Ask Claude to Fetch Latest Backup from Drive",
+  bulkAdd:"Bulk Add", bulkAddTitle:"Bulk Add Customers", bulkAddHint:"Paste one customer per line. Separate details with a | (pipe) symbol.",
+  bulkAddFormat:"Format: Name | Phone | Address | Area | Package | STB/Connection No | Balance Due | Status", bulkAddOptional:"Phone, Package, STB No, Balance and Status are optional (Status: active or inactive). Area and Package will be created automatically if they don't already exist.",
+  bulkAddPlaceholder:"Ravi Kumar | 9876543210 | 12 Bazaar Street | Anna Nagar | HD Combo | STB1023 | 500 | active", import:"Import",
+  importSummaryTitle:"Ready to Import", customersToAdd:"customers will be added", newAreasWillBeCreated:"new areas will be created", newPackagesWillBeCreated:"new packages will be created (set their price after import)",
+  skippedDuplicates:"already existing customers were skipped", noValidLines:"No valid customer lines found. Check the format and try again.", importDone:"Import complete!",
+  balance:"Balance Due", openingBalance:"Opening Balance (any pending dues)", balanceHint:"If this customer already owes money from before, enter it here.", clearBalance:"Balance Cleared",
+  bulkAddPkg:"Bulk Add", bulkAddPkgTitle:"Bulk Add Packages", bulkAddPkgHint:"Paste one plan per line. Separate details with a | (pipe) symbol.",
+  bulkAddPkgFormat:"Format: Plan Name | Type | Price", bulkAddPkgOptional:"Type must be cable, internet, or combo (defaults to cable if left blank).",
+  bulkAddPkgPlaceholder:"HD Combo | combo | 350", pkgsToAdd:"plans will be added", pkgsSkipped:"already existing plans were skipped", noValidPkgLines:"No valid plan lines found. Check the format and try again."
+},
+ta:{
+  appName:"கேபிள் & இணைய பில்லிங்", home:"முகப்பு", customers:"வாடிக்கையாளர்கள்", collect:"பணம் வசூல்", reports:"அறிக்கைகள்", manage:"மேலாண்மை",
+  totalCustomers:"மொத்த வாடிக்கையாளர்கள்", activeConnections:"செயலில் இணைப்புகள்", thisMonthCollection:"இந்த மாத வசூல்", dueThisMonthLbl:"இந்த மாத பாக்கி",
+  quickActions:"விரைவு செயல்கள்", addCustomer:"வாடிக்கையாளர் சேர்", collectPayment:"பணம் வசூலி", recentPayments:"சமீபத்திய பணம் வசூல்கள்", noPayments:"இதுவரை பணம் பதிவு இல்லை",
+  setupBanner:"வாடிக்கையாளர்களுக்கு QR குறியீடு உருவாக்க, மேலாண்மை \u2192 அமைப்புகளில் உங்கள் வங்கி UPI ஐடியைச் சேர்க்கவும்.", goSettings:"அமைப்புகளுக்கு செல்",
+  yourCustomers:"உங்கள் வாடிக்கையாளர்கள்", search:"பெயர் அல்லது எண் தேடவும்", noCustomers:"வாடிக்கையாளர்கள் இல்லை", addFirstCustomer:"தொடங்க முதல் வாடிக்கையாளரைச் சேர்க்கவும்",
+  editCustomer:"திருத்து", name:"முழு பெயர்", phone:"தொலைபேசி எண்", address:"முகவரி", area:"பகுதி", package:"பேக்கேஜ்", connNo:"இணைப்பு / STB எண் (விருப்பம்)",
+  status:"நிலை", active:"செயலில்", inactive:"செயலற்றது", save:"சேமி", cancel:"ரத்து செய்", delete:"நீக்கு", edit:"திருத்து",
+  selectArea:"பகுதியைத் தேர்ந்தெடுக்கவும்", selectPackage:"பேக்கேஜைத் தேர்ந்தெடுக்கவும்", noAreaWarn:"முதலில் மேலாண்மை \u2192 பகுதிகளில் ஒரு பகுதியைச் சேர்க்கவும்.", noPackageWarn:"முதலில் மேலாண்மை \u2192 பேக்கேஜ்களில் ஒரு பேக்கேஜைச் சேர்க்கவும்.",
+  confirmDelete:"நீக்கவா? இதை மீட்டெடுக்க முடியாது.", month:"/மாதம்",
+  collectTitle:"பணம் வசூலி", selectCustomer:"வாடிக்கையாளரைத் தேடி தேர்ந்தெடுக்கவும்", noResults:"பொருத்தம் இல்லை", changeCustomer:"மாற்று",
+  amount:"தொகை", employee:"வசூலித்தவர்", date:"தேதி", method:"பணம் செலுத்தும் முறை", cash:"பணமாக", upi:"UPI / QR",
+  generateQR:"QR குறியீடு உருவாக்கு", scanToPay:"பணம் செலுத்த ஸ்கேன் செய்யவும்", savePayment:"பணம் சேமி", paymentSaved:"பணம் சேமிக்கப்பட்டது!",
+  setUpiFirst:"QR மூலம் பணம் பெற, மேலாண்மை \u2192 அமைப்புகளில் UPI ஐடியைச் சேர்க்கவும்.",
+  reportsTitle:"அறிக்கைகள்", from:"இருந்து", to:"வரை", employeeFilter:"பணியாளர்", areaFilter:"பகுதி", allEmployees:"அனைத்து பணியாளர்கள்", allAreas:"அனைத்து பகுதிகள்",
+  totalCollected:"மொத்த வசூல்", entries:"பதிவுகள்", print:"அச்சிடு", tblDate:"தேதி", tblCustomer:"வாடிக்கையாளர்", tblArea:"பகுதி", tblPackage:"பேக்கேஜ்", tblAmount:"தொகை", tblMethod:"முறை", tblEmployee:"பணியாளர்",
+  manageTitle:"மேலாண்மை", areas:"பகுதிகள்", packages:"பேக்கேஜ்கள்", employees:"பணியாளர்கள்", settings:"அமைப்புகள்",
+  addArea:"பகுதி சேர்", areaName:"பகுதி பெயர்", noAreas:"பகுதிகள் இல்லை", usedBy:"பயன்படுத்துபவர்",
+  addPackage:"பேக்கேஜ் சேர்", packageName:"பேக்கேஜ் பெயர்", packageType:"வகை", packagePrice:"மாத விலை", cableTv:"கேபிள் டிவி", internet:"இணையம்", combo:"காம்போ (டிவி + இணையம்)", noPackages:"பேக்கேஜ்கள் இல்லை",
+  addEmployee:"பணியாளர் சேர்", employeeName:"பணியாளர் பெயர்", noEmployees:"பணியாளர்கள் இல்லை",
+  employeePhone:"தொலைபேசி எண்", employeeRole:"பணி (எ.கா. Collection Agent)",
+  bulkAddEmp:"பலரையும் சேர்", bulkAddEmpTitle:"பல பணியாளர்களை சேர்", bulkAddEmpHint:"ஒரு வரிக்கு ஒரு பணியாளர் என ஒட்டவும். விவரங்களை | (பைப்) குறியால் பிரிக்கவும்.",
+  bulkAddEmpFormat:"வடிவம்: பெயர் | தொலைபேசி | பணி | நிலை", bulkAddEmpOptional:"தொலைபேசி, பணி மற்றும் நிலை விருப்பமானவை (நிலை: active அல்லது inactive).",
+  bulkAddEmpPlaceholder:"Ravi Kumar | 9876543210 | Collection Agent | active", empsToAdd:"பணியாளர்கள் சேர்க்கப்படுவார்கள்", empsSkipped:"ஏற்கனவே உள்ள பணியாளர்கள் தவிர்க்கப்பட்டனர்", noValidEmpLines:"சரியான பணியாளர் வரிகள் இல்லை. வடிவத்தைச் சரிபார்த்து மீண்டும் முயற்சிக்கவும்.",
+  tickets:"டிக்கெட்டுகள்", ticketsTitle:"புகார் & டிக்கெட்டுகள்", addTicket:"டிக்கெட் சேர்", ticketCustomer:"வாடிக்கையாளர்", ticketType:"பிரச்சனை வகை", ticketDesc:"விவரம் (விருப்பம்)",
+  typeNoSignal:"சிக்னல் இல்லை", typeNetIssue:"இணையம் வேலை செய்யவில்லை", typeBillingIssue:"பில் பிரச்சனை", typeSTB:"STB பிரச்சனை", typeOther:"மற்றவை",
+  statusOpen:"திறந்துள்ளது", statusInProgress:"நடந்து கொண்டிருக்கிறது", statusResolved:"தீர்க்கப்பட்டது", assignedTo:"நியமிக்கப்பட்டவர்", noAssignee:"நியமிக்கப்படவில்லை",
+  noTickets:"டிக்கெட்டுகள் இல்லை", filterStatus:"நிலை", allStatuses:"அனைத்தும்", start:"தொடங்கு", resolve:"தீர்", reopen:"மீண்டும் திற",
+  openTickets:"திறந்த டிக்கெட்டுகள்", selectCustomerFirst:"முதலில் வாடிக்கையாளரைத் தேர்ந்தெடுக்கவும்",
+  viewStatement:"கணக்கு அறிக்கை", statementTitle:"வாடிக்கையாளர் கணக்கு அறிக்கை", statementBalance:"பாக்கி தொகை", statementPackage:"பேக்கேஜ்", statementLastPayment:"கடைசி பணம்",
+  shareWhatsApp:"WhatsApp-இல் அனுப்பு", shareSMS:"SMS மூலம் அனுப்பு", sendReminder:"நினைவூட்டல் அனுப்பு", noPhoneWarn:"இந்த வாடிக்கையாளருக்கு தொலைபேசி எண் இல்லை.",
+  shareReceiptWhatsApp:"ரசீதை WhatsApp-இல் அனுப்பு", collectAnother:"மேலும் ஒரு பணம் வசூலி", done:"முடிந்தது", never:"இதுவரை இல்லை",
+  settingsTitle:"நிறுவன அமைப்புகள்", businessName:"நிறுவனப் பெயர்", payeeName:"பெறுநர் பெயர் (வங்கி படி)", upiIdLabel:"UPI ஐடி", upiHint:"எ.கா. yourname@okhdfcbank \u2014 வாடிக்கையாளர் ஸ்கேன் செய்யும் QR-இல் காட்டப்படும்",
+  languageLabel:"பயன்பாட்டு மொழி", saveSettings:"அமைப்புகளை சேமி", settingsSaved:"அமைப்புகள் சேமிக்கப்பட்டன",
+  paid:"செலுத்தப்பட்டது", due:"பாக்கி", customersCount:"வாடிக்கையாளர்கள்", packagesCount:"பேக்கேஜ்கள்",
+  backupTitle:"காப்பு & மீட்பு", backupDesc:"உங்கள் தரவு ஏற்கனவே இந்தச் சாதனத்தில் தானாக சேமிக்கப்படுகிறது. Google Drive-இலும் ஒரு நகல் வேண்டும் எனில், அல்லது வேறு சாதனத்திற்கு தரவை மாற்ற வேண்டும் எனில் இவற்றைப் பயன்படுத்தவும்.",
+  downloadBackup:"காப்பு கோப்பைப் பதிவிறக்கு", backupToDrive:"Google Drive-க்கு காப்பு அனுப்பு", driveSentHint:"இது உங்கள் தரவை chat-க்கு அனுப்பும், அதை Claude உங்கள் Google Drive-இல் ஒரு காப்பு கோப்பாகவும் Google Sheet ஆகவும் சேமிக்கும்.",
+  restoreBackup:"காப்பிலிருந்து மீட்டெடு", restoreHint:"ஒரு காப்பு கோப்பைத் தேர்ந்தெடுக்கவும், அல்லது Claude அனுப்பிய காப்பு உரையை ஒட்டவும்.", chooseFile:"கோப்பைத் தேர்ந்தெடு",
+  pasteBackupLabel:"அல்லது காப்பு உரையை இங்கே ஒட்டவும்", restore:"மீட்டெடு", restoreConfirm:"இது இந்தச் சாதனத்தில் உள்ள தற்போதைய தரவை காப்பு தரவுடன் மாற்றும். தொடரவா?",
+  restoreSuccess:"தரவு மீட்டெடுக்கப்பட்டது!", restoreError:"அந்த காப்பைப் படிக்க முடியவில்லை. கோப்பு அல்லது உரையைச் சரிபார்க்கவும்.", askDriveRestore:"Drive-இலிருந்து சமீபத்திய காப்பைப் பெற Claude-இடம் கேளுங்கள்",
+  bulkAdd:"பலரையும் சேர்", bulkAddTitle:"பல வாடிக்கையாளர்களை சேர்", bulkAddHint:"ஒரு வரிக்கு ஒரு வாடிக்கையாளர் என ஒட்டவும். விவரங்களை | (பைப்) குறியால் பிரிக்கவும்.",
+  bulkAddFormat:"வடிவம்: பெயர் | தொலைபேசி | முகவரி | பகுதி | பேக்கேஜ் | STB/இணைப்பு எண் | பாக்கி தொகை | நிலை", bulkAddOptional:"தொலைபேசி, பேக்கேஜ், STB எண், பாக்கி மற்றும் நிலை விருப்பமானவை (நிலை: active அல்லது inactive). பகுதியும் பேக்கேஜும் ஏற்கனவே இல்லை என்றால் தானாக உருவாக்கப்படும்.",
+  bulkAddPlaceholder:"Ravi Kumar | 9876543210 | 12 Bazaar Street | Anna Nagar | HD Combo | STB1023 | 500 | active", import:"இறக்குமதி செய்",
+  importSummaryTitle:"இறக்குமதிக்கு தயார்", customersToAdd:"வாடிக்கையாளர்கள் சேர்க்கப்படுவார்கள்", newAreasWillBeCreated:"புதிய பகுதிகள் உருவாக்கப்படும்", newPackagesWillBeCreated:"புதிய பேக்கேஜ்கள் உருவாக்கப்படும் (இறக்குமதிக்குப் பிறகு விலையை அமைக்கவும்)",
+  skippedDuplicates:"ஏற்கனவே உள்ள வாடிக்கையாளர்கள் தவிர்க்கப்பட்டனர்", noValidLines:"சரியான வாடிக்கையாளர் வரிகள் இல்லை. வடிவத்தைச் சரிபார்த்து மீண்டும் முயற்சிக்கவும்.", importDone:"இறக்குமதி முடிந்தது!",
+  balance:"பாக்கி தொகை", openingBalance:"தொடக்க பாக்கி (முந்தைய நிலுவை)", balanceHint:"இந்த வாடிக்கையாளர் முன்பே பணம் நிலுவையில் வைத்திருந்தால், இங்கே பதிவு செய்யவும்.", clearBalance:"பாக்கி தீர்க்கப்பட்டது",
+  bulkAddPkg:"பலரையும் சேர்", bulkAddPkgTitle:"பல பேக்கேஜ்களை சேர்", bulkAddPkgHint:"ஒரு வரிக்கு ஒரு பேக்கேஜ் என ஒட்டவும். விவரங்களை | (பைப்) குறியால் பிரிக்கவும்.",
+  bulkAddPkgFormat:"வடிவம்: பேக்கேஜ் பெயர் | வகை | விலை", bulkAddPkgOptional:"வகை cable, internet, அல்லது combo ஆக இருக்க வேண்டும் (காலியாக இருந்தால் cable எனப் பயன்படுத்தப்படும்).",
+  bulkAddPkgPlaceholder:"HD Combo | combo | 350", pkgsToAdd:"பேக்கேஜ்கள் சேர்க்கப்படும்", pkgsSkipped:"ஏற்கனவே உள்ள பேக்கேஜ்கள் தவிர்க்கப்பட்டன", noValidPkgLines:"சரியான பேக்கேஜ் வரிகள் இல்லை. வடிவத்தைச் சரிபார்த்து மீண்டும் முயற்சிக்கவும்."
+}
+};
+function lang(){return DATA.settings.language==='ta'?'ta':'en';}
+function t(k){return (T[lang()]&&T[lang()][k])||T.en[k]||k;}
+
+/* ================= APP STATE ================= */
+let TAB='home';
+let MANAGE_SUB='areas';
+let CUSTOMER_SEARCH='';
+let COLLECT_CUSTOMER_ID=null;
+let COLLECT_SEARCH='';
+let COLLECT_METHOD='cash';
+let QR_SHOWN=false;
+let REPORT_FILTERS=null; // lazy init with defaults
+
+function firstDayOfMonth(){const d=new Date();return new Date(d.getFullYear(),d.getMonth(),1).toISOString().slice(0,10);}
+
+function ensureReportFilters(){
+  if(!REPORT_FILTERS){REPORT_FILTERS={from:firstDayOfMonth(),to:todayStr(),employeeId:'',areaId:''};}
+}
+
+/* ================= ICONS ================= */
+const ICONS={
+  home:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>',
+  customers:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.5 3-6 6.5-6s6.5 2.5 6.5 6"/><circle cx="17.5" cy="9" r="2.7"/><path d="M15.5 14c2.8.3 5 2.5 5 6"/></svg>',
+  collect:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="13" rx="2"/><path d="M2.5 10h19"/><path d="M6 15h4"/></svg>',
+  reports:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M12 20V4M20 20v-7"/></svg>',
+  manage:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>',
+  plus:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  edit:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>',
+  trash:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6"/></svg>',
+  tickets:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><circle cx="12" cy="16.5" r="0.6" fill="currentColor" stroke="none"/><path d="M10.3 3.9L2.6 17.5A1.8 1.8 0 004.2 20h15.6a1.8 1.8 0 001.6-2.5L13.7 3.9a1.8 1.8 0 00-3.4 0z"/></svg>',
+  chat:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>',
+  send:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>',
+};
+function signalIcon(level){ // level: 3 green,1 amber,0 red/grey
+  const c1=level>=1?(level===3?'var(--green)':'var(--amber)'):'#D8D4C8';
+  const c2=level>=2?'var(--green)':'#D8D4C8';
+  const c3=level>=3?'var(--green)':'#D8D4C8';
+  return `<span class="signal"><i style="background:${c1}"></i><i style="background:${c2}"></i><i style="background:${c3}"></i></span>`;
+}
+const BRAND_LOGO="data:image/png;base64,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";
+const BRAND_SVG='<svg class="brand-mark" viewBox="0 0 34 30" fill="none"><rect x="1" y="17" width="6" height="12" rx="1.5" fill="var(--green)"/><rect x="10" y="10" width="6" height="19" rx="1.5" fill="var(--accent)"/><rect x="19" y="3" width="6" height="26" rx="1.5" fill="var(--accent)"/><circle cx="28" cy="6" r="4.5" fill="var(--amber)"/></svg>';
+
+/* ================= HELPERS (data lookups) ================= */
+const getArea=(id)=>DATA.areas.find(a=>a.id===id);
+const getPackage=(id)=>DATA.packages.find(p=>p.id===id);
+const getEmployee=(id)=>DATA.employees.find(e=>e.id===id);
+const getCustomer=(id)=>DATA.customers.find(c=>c.id===id);
+function fmtMoney(n){return '\u20B9'+Number(n||0).toLocaleString('en-IN',{maximumFractionDigits:0});}
+function fmtDate(s){ if(!s) return '-'; const d=new Date(s+'T00:00:00'); return d.toLocaleDateString(lang()==='ta'?'ta-IN':'en-IN',{day:'2-digit',month:'short',year:'numeric'}); }
+function monthKey(s){return s.slice(0,7);}
+function isPaidThisMonth(cust){
+  const mk=monthKey(todayStr());
+  const pkg=getPackage(cust.packageId);
+  const price=pkg?Number(pkg.price):0;
+  const paid=DATA.payments.filter(p=>p.customerId===cust.id&&monthKey(p.date)===mk).reduce((s,p)=>s+Number(p.amount),0);
+  return price>0? paid>=price : paid>0;
+}
+function lastPaymentDate(custId){
+  const list=DATA.payments.filter(p=>p.customerId===custId).sort((a,b)=>b.date.localeCompare(a.date));
+  return list.length?list[0].date:null;
+}
+function waNumber(phone){
+  let d=String(phone||'').replace(/\D/g,'');
+  if(d.length===10)d='91'+d;
+  return d;
+}
+function openWhatsApp(phone,message){
+  const num=waNumber(phone);
+  if(!num){alert(t('noPhoneWarn'));return;}
+  window.open('https://wa.me/'+num+'?text='+encodeURIComponent(message),'_blank');
+}
+function openSMS(phone,message){
+  if(!phone){alert(t('noPhoneWarn'));return;}
+  window.open('sms:'+phone+'?body='+encodeURIComponent(message),'_blank');
+}
+function buildStatementMessage(cust){
+  const biz=DATA.settings.businessName||t('appName');
+  const pkg=getPackage(cust.packageId);
+  const bal=Number(cust.openingBalance||0);
+  const lp=lastPaymentDate(cust.id);
+  let msg=biz+'\n\n'+t('name')+': '+cust.name+'\n';
+  if(pkg)msg+=t('statementPackage')+': '+pkg.name+' ('+fmtMoney(pkg.price)+t('month')+')\n';
+  msg+=t('statementBalance')+': '+fmtMoney(bal)+'\n';
+  if(lp)msg+=t('statementLastPayment')+': '+fmtDate(lp)+'\n';
+  if(DATA.settings.upiId)msg+='\nUPI: '+DATA.settings.upiId;
+  return msg;
+}
+function buildReceiptMessage(cust,amount,dateVal){
+  const biz=DATA.settings.businessName||t('appName');
+  return biz+'\n\n'+t('name')+': '+cust.name+'\n'+t('amount')+': '+fmtMoney(amount)+'\n'+t('date')+': '+fmtDate(dateVal)+'\n\n'+t('paymentSaved');
+}
+
+/* ================= MODAL ================= */
+function openModal(title,bodyHtml,footHtml){
+  document.getElementById('modalTitle').textContent=title;
+  document.getElementById('modalBody').innerHTML=bodyHtml;
+  document.getElementById('modalFoot').innerHTML=footHtml;
+  document.getElementById('overlay').classList.add('open');
+}
+function closeModal(){document.getElementById('overlay').classList.remove('open');}
+document.getElementById('modalCloseBtn').addEventListener('click',closeModal);
+document.getElementById('overlay').addEventListener('click',(e)=>{if(e.target.id==='overlay')closeModal();});
+
+/* ================= RENDER: SHELL ================= */
+function render(){
+  const root=document.getElementById('root');
+  root.innerHTML=`
+    <div class="mobile-top">
+      <div class="brand"><img src="${BRAND_LOGO}" class="brand-mark" alt="logo"><span class="brand-name">${esc(DATA.settings.businessName||t('appName'))}</span></div>
+      ${langToggleHtml()}
+    </div>
+    <aside class="sidebar">
+      <div class="brand"><img src="${BRAND_LOGO}" class="brand-mark" alt="logo"><span class="brand-name">${esc(DATA.settings.businessName||t('appName'))}</span></div>
+      <nav class="nav">
+        ${navItem('home',t('home'))}
+        ${navItem('customers',t('customers'))}
+        ${navItem('collect',t('collect'))}
+        ${navItem('tickets',t('tickets'))}
+        ${navItem('reports',t('reports'))}
+        ${navItem('manage',t('manage'))}
+      </nav>
+      ${langToggleHtml()}
+    </aside>
+    <main id="main"></main>
+    <nav class="bottom-nav">
+      ${bottomItem('home',t('home'))}
+      ${bottomItem('customers',t('customers'))}
+      ${bottomItem('collect',t('collect'))}
+      ${bottomItem('tickets',t('tickets'))}
+      ${bottomItem('reports',t('reports'))}
+      ${bottomItem('manage',t('manage'))}
+    </nav>
+  `;
+  bindNav();
+  renderMain();
+}
+function navItem(id,label){return `<button class="nav-item ${TAB===id?'active':''}" data-tab="${id}">${ICONS[id]}<span>${esc(label)}</span></button>`;}
+function bottomItem(id,label){return `<button class="${TAB===id?'active':''}" data-tab="${id}">${ICONS[id]}<span>${esc(label)}</span></button>`;}
+function langToggleHtml(){
+  return `<div class="lang-toggle">
+    <button data-lang="en" class="${lang()==='en'?'active':''}">EN</button>
+    <button data-lang="ta" class="${lang()==='ta'?'active':''}">\u0BA4\u0BAE\u0BBF\u0BB4\u0BCD</button>
+  </div>`;
+}
+function bindNav(){
+  document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{TAB=b.getAttribute('data-tab');QR_SHOWN=false;LAST_SAVED_PAYMENT=null;render();}));
+  document.querySelectorAll('[data-lang]').forEach(b=>b.addEventListener('click',()=>{DATA.settings.language=b.getAttribute('data-lang');saveData();render();}));
+}
+
+function renderMain(){
+  const main=document.getElementById('main');
+  if(TAB==='home')main.innerHTML=renderHome();
+  else if(TAB==='customers')main.innerHTML=renderCustomers();
+  else if(TAB==='collect')main.innerHTML=renderCollect();
+  else if(TAB==='tickets')main.innerHTML=renderTickets();
+  else if(TAB==='reports')main.innerHTML=renderReports();
+  else if(TAB==='manage')main.innerHTML=renderManage();
+  bindMainEvents();
+}
+
+/* ================= HOME ================= */
+function renderHome(){
+  const totalCustomers=DATA.customers.length;
+  const active=DATA.customers.filter(c=>c.status==='active');
+  const mk=monthKey(todayStr());
+  const monthTotal=DATA.payments.filter(p=>monthKey(p.date)===mk).reduce((s,p)=>s+Number(p.amount),0);
+  const dueCount=active.filter(c=>!isPaidThisMonth(c)||(c.openingBalance||0)>0).length;
+  const recent=[...DATA.payments].sort((a,b)=>b.createdAt-a.createdAt).slice(0,6);
+  const needsSetup=!DATA.settings.upiId;
+
+  return `
+    ${needsSetup?`<div class="banner">\u26A0\uFE0F <div>${esc(t('setupBanner'))}<br><button class="btn btn-sm secondary no-print" id="gotoSettingsBtn" style="margin-top:8px;">${esc(t('goSettings'))}</button></div></div>`:''}
+    <div class="page-head">
+      <div><h1>${esc(t('home'))}</h1><p class="page-sub">${esc(DATA.settings.businessName||'')}</p></div>
+    </div>
+    <div class="grid-stats">
+      <div class="stat-card"><div class="stat-label">${esc(t('totalCustomers'))}</div><div class="stat-value">${totalCustomers}</div></div>
+      <div class="stat-card"><div class="stat-label">${esc(t('activeConnections'))}</div><div class="stat-value green">${active.length}</div></div>
+      <div class="stat-card"><div class="stat-label">${esc(t('thisMonthCollection'))}</div><div class="stat-value">${fmtMoney(monthTotal)}</div></div>
+      <div class="stat-card"><div class="stat-label">${esc(t('dueThisMonthLbl'))}</div><div class="stat-value amber">${dueCount}</div></div>
+      <div class="stat-card"><div class="stat-label">${esc(t('openTickets'))}</div><div class="stat-value red">${DATA.tickets.filter(tk=>tk.status!=='resolved').length}</div></div>
+    </div>
+    <div class="card card-pad" style="margin-bottom:20px;">
+      <div class="section-title">${esc(t('quickActions'))}</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn" id="qaAddCustomer">${ICONS.plus} ${esc(t('addCustomer'))}</button>
+        <button class="btn secondary" id="qaCollect">${ICONS.collect} ${esc(t('collectPayment'))}</button>
+      </div>
+    </div>
+    <div class="card card-pad">
+      <div class="section-title">${esc(t('recentPayments'))}</div>
+      ${recent.length===0?`<div class="empty-state"><div class="big">\uD83E\uDDFE</div>${esc(t('noPayments'))}</div>`:`
+      <div class="list">
+        ${recent.map(p=>{
+          const c=getCustomer(p.customerId);
+          return `<div class="row-card"><div class="row-main">
+            <div class="row-title">${esc(c?c.name:'-')}</div>
+            <div class="row-sub"><span>${fmtDate(p.date)}</span><span>\u2022</span><span>${esc(p.method==='upi'?t('upi'):t('cash'))}</span></div>
+          </div><div class="stat-value" style="font-size:16px;">${fmtMoney(p.amount)}</div></div>`;
+        }).join('')}
+      </div>`}
+    </div>
+  `;
+}
+
+/* ================= CUSTOMERS ================= */
+function renderCustomers(){
+  const q=CUSTOMER_SEARCH.trim().toLowerCase();
+  const list=DATA.customers.filter(c=>!q||c.name.toLowerCase().includes(q)||(c.phone||'').includes(q));
+  return `
+    <div class="page-head">
+      <div><h1>${esc(t('yourCustomers'))}</h1><p class="page-sub">${DATA.customers.length} ${esc(t('customersCount'))}</p></div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn secondary" id="bulkAddBtn">${ICONS.plus} ${esc(t('bulkAdd'))}</button>
+        <button class="btn" id="addCustomerBtn">${ICONS.plus} ${esc(t('addCustomer'))}</button>
+      </div>
+    </div>
+    <div class="field" style="max-width:320px;margin-bottom:16px;">
+      <input type="text" placeholder="${esc(t('search'))}" id="custSearchInput" value="${esc(CUSTOMER_SEARCH)}">
+    </div>
+    ${list.length===0?`<div class="empty-state card"><div class="big">\uD83D\uDC65</div><div style="font-weight:700;margin-bottom:4px;">${esc(t('noCustomers'))}</div><div>${esc(t('addFirstCustomer'))}</div></div>`:`
+    <div class="list">
+      ${list.map(c=>{
+        const area=getArea(c.areaId), pkg=getPackage(c.packageId);
+        const paid=isPaidThisMonth(c);
+        const bal=Number(c.openingBalance||0);
+        const level=c.status!=='active'?0:((paid&&bal<=0)?3:1);
+        return `<div class="row-card">
+          <div style="flex-shrink:0;">${signalIcon(level)}</div>
+          <div class="row-main">
+            <div class="row-title">${esc(c.name)}</div>
+            <div class="row-sub">
+              <span>${esc(area?area.name:'-')}</span><span>\u2022</span><span>${esc(pkg?pkg.name:'-')}</span>
+              ${c.phone?`<span>\u2022</span><span>${esc(c.phone)}</span>`:''}
+              ${bal>0?`<span>\u2022</span><span style="color:var(--red);font-weight:700;">${esc(t('balance'))}: ${fmtMoney(bal)}</span>`:''}
+            </div>
+          </div>
+          <span class="pill ${c.status==='active'?((paid&&bal<=0)?'green':'amber'):'grey'}">${c.status==='active'?((paid&&bal<=0)?esc(t('paid')):esc(t('due'))):esc(t('inactive'))}</span>
+          <div class="row-actions">
+            <button class="icon-btn" data-statement="${c.id}">${ICONS.send}</button>
+            <button class="icon-btn" data-edit-customer="${c.id}">${ICONS.edit}</button>
+            <button class="icon-btn" data-del-customer="${c.id}">${ICONS.trash}</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`}
+  `;
+}
+
+function customerFormHtml(cust){
+  const areaOpts=DATA.areas.map(a=>`<option value="${a.id}" ${cust&&cust.areaId===a.id?'selected':''}>${esc(a.name)}</option>`).join('');
+  const pkgOpts=DATA.packages.map(p=>`<option value="${p.id}" ${cust&&cust.packageId===p.id?'selected':''}>${esc(p.name)} \u2014 ${fmtMoney(p.price)}${esc(t('month'))}</option>`).join('');
+  return `
+    ${DATA.areas.length===0?`<div class="banner">${esc(t('noAreaWarn'))}</div>`:''}
+    ${DATA.packages.length===0?`<div class="banner">${esc(t('noPackageWarn'))}</div>`:''}
+    <div class="field"><label>${esc(t('name'))}</label><input type="text" id="f_name" value="${cust?esc(cust.name):''}"></div>
+    <div class="field-row">
+      <div class="field"><label>${esc(t('phone'))}</label><input type="tel" id="f_phone" value="${cust?esc(cust.phone||''):''}"></div>
+      <div class="field"><label>${esc(t('connNo'))}</label><input type="text" id="f_conn" value="${cust?esc(cust.connNo||''):''}"></div>
+    </div>
+    <div class="field"><label>${esc(t('address'))}</label><textarea id="f_address" rows="2">${cust?esc(cust.address||''):''}</textarea></div>
+    <div class="field-row">
+      <div class="field"><label>${esc(t('area'))}</label><select id="f_area"><option value="">${esc(t('selectArea'))}</option>${areaOpts}</select></div>
+      <div class="field"><label>${esc(t('package'))}</label><select id="f_package"><option value="">${esc(t('selectPackage'))}</option>${pkgOpts}</select></div>
+    </div>
+    <div class="field"><label>${esc(t('openingBalance'))}</label><input type="number" id="f_balance" value="${cust&&cust.openingBalance?cust.openingBalance:''}">
+      <div class="row-sub" style="margin-top:6px;">${esc(t('balanceHint'))}</div>
+    </div>
+    <div class="field"><label>${esc(t('status'))}</label>
+      <div class="radio-group" id="f_status_group">
+        <div class="radio-opt ${(!cust||cust.status==='active')?'checked':''}" data-status="active">${esc(t('active'))}</div>
+        <div class="radio-opt ${(cust&&cust.status==='inactive')?'checked':''}" data-status="inactive">${esc(t('inactive'))}</div>
+      </div>
+    </div>
+  `;
+}
+function bindCustomerFormRadios(){
+  document.querySelectorAll('#f_status_group .radio-opt').forEach(el=>{
+    el.addEventListener('click',()=>{
+      document.querySelectorAll('#f_status_group .radio-opt').forEach(x=>x.classList.remove('checked'));
+      el.classList.add('checked');
+    });
+  });
+}
+function openCustomerModal(cust){
+  openModal(cust?t('editCustomer'):t('addCustomer'),customerFormHtml(cust),`
+    <button class="btn secondary" id="modalCancel">${esc(t('cancel'))}</button>
+    <button class="btn" id="modalSave">${esc(t('save'))}</button>
+  `);
+  bindCustomerFormRadios();
+  document.getElementById('modalCancel').addEventListener('click',closeModal);
+  document.getElementById('modalSave').addEventListener('click',()=>{
+    const name=document.getElementById('f_name').value.trim();
+    if(!name)return;
+    const status=document.querySelector('#f_status_group .checked').getAttribute('data-status');
+    const obj={
+      id:cust?cust.id:uid(),
+      name,
+      phone:document.getElementById('f_phone').value.trim(),
+      conn:undefined,
+      connNo:document.getElementById('f_conn').value.trim(),
+      address:document.getElementById('f_address').value.trim(),
+      areaId:document.getElementById('f_area').value,
+      packageId:document.getElementById('f_package').value,
+      status,
+      openingBalance:Math.round(Number(document.getElementById('f_balance').value||0)),
+      createdAt:cust?cust.createdAt:Date.now()
+    };
+    if(cust){Object.assign(cust,obj);}
+    else{DATA.customers.push(obj);}
+    saveData();closeModal();renderMain();
+  });
+}
+
+/* ================= COLLECT ================= */
+let LAST_SAVED_PAYMENT=null;
+function renderCollect(){
+  if(LAST_SAVED_PAYMENT){
+    const c=getCustomer(LAST_SAVED_PAYMENT.customerId);
+    return `
+      <div class="page-head"><div><h1>${esc(t('collectTitle'))}</h1></div></div>
+      <div class="card card-pad" style="max-width:480px;text-align:center;">
+        <div style="font-size:34px;margin-bottom:6px;">\u2705</div>
+        <div style="font-weight:700;font-size:16px;margin-bottom:4px;">${esc(t('paymentSaved'))}</div>
+        <div class="row-sub" style="margin-bottom:18px;">${esc(c?c.name:'')} \u2022 ${fmtMoney(LAST_SAVED_PAYMENT.amount)}</div>
+        <button class="btn block" id="shareReceiptBtn" style="margin-bottom:9px;">${ICONS.chat} ${esc(t('shareReceiptWhatsApp'))}</button>
+        <button class="btn secondary block" id="collectAnotherBtn" style="margin-bottom:9px;">${esc(t('collectAnother'))}</button>
+        <button class="btn secondary block" id="collectDoneBtn">${esc(t('done'))}</button>
+      </div>
+    `;
+  }
+  const cust=COLLECT_CUSTOMER_ID?getCustomer(COLLECT_CUSTOMER_ID):null;
+  const pkg=cust?getPackage(cust.packageId):null;
+  const suggestedAmt=pkg?(Number(pkg.price)+Number(cust&&cust.openingBalance||0)):(cust&&cust.openingBalance?cust.openingBalance:'');
+  return `
+    <div class="page-head"><div><h1>${esc(t('collectTitle'))}</h1></div></div>
+    <div class="card card-pad" style="max-width:480px;">
+      ${!cust?`
+        <div class="field customer-search">
+          <label>${esc(t('selectCustomer'))}</label>
+          <input type="text" id="collectSearch" placeholder="${esc(t('search'))}" value="${esc(COLLECT_SEARCH)}" autocomplete="off">
+          ${COLLECT_SEARCH.trim()?renderCollectSuggestions():''}
+        </div>
+      `:`
+        <div class="selected-customer">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div><div class="name">${esc(cust.name)}</div>
+            <div class="meta">${esc(getArea(cust.areaId)?getArea(cust.areaId).name:'-')} \u2022 ${esc(pkg?pkg.name:'-')}${cust.openingBalance>0?` \u2022 <span style="color:var(--red);font-weight:700;">${esc(t('balance'))}: ${fmtMoney(cust.openingBalance)}</span>`:''}</div></div>
+            <button class="btn-sm secondary btn" id="changeCustBtn">${esc(t('changeCustomer'))}</button>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>${esc(t('amount'))}</label><input type="number" id="c_amount" value="${suggestedAmt}"></div>
+          <div class="field"><label>${esc(t('date'))}</label><input type="date" id="c_date" value="${todayStr()}"></div>
+        </div>
+        <div class="field"><label>${esc(t('employee'))}</label>
+          <select id="c_employee"><option value="">-</option>${DATA.employees.map(e=>`<option value="${e.id}">${esc(e.name)}</option>`).join('')}</select>
+        </div>
+        <div class="field"><label>${esc(t('method'))}</label>
+          <div class="radio-group" id="methodGroup">
+            <div class="radio-opt ${COLLECT_METHOD==='cash'?'checked':''}" data-method="cash">${esc(t('cash'))}</div>
+            <div class="radio-opt ${COLLECT_METHOD==='upi'?'checked':''}" data-method="upi">${esc(t('upi'))}</div>
+          </div>
+        </div>
+        ${COLLECT_METHOD==='upi'&&!DATA.settings.upiId?`<div class="banner">${esc(t('setUpiFirst'))}</div>`:''}
+        ${COLLECT_METHOD==='upi'&&DATA.settings.upiId?`
+          <button class="btn secondary block" id="genQrBtn" style="margin-bottom:14px;">${esc(t('generateQR'))}</button>
+          <div id="qrArea"></div>
+        `:''}
+        <button class="btn block" id="savePaymentBtn">${esc(t('savePayment'))}</button>
+      `}
+    </div>
+  `;
+}
+function renderCollectSuggestions(){
+  const q=COLLECT_SEARCH.trim().toLowerCase();
+  const matches=DATA.customers.filter(c=>c.status==='active'&&(c.name.toLowerCase().includes(q)||(c.phone||'').includes(q))).slice(0,8);
+  if(matches.length===0)return `<div class="suggest-list"><div class="suggest-item">${esc(t('noResults'))}</div></div>`;
+  return `<div class="suggest-list">${matches.map(c=>`<div class="suggest-item" data-pick-cust="${c.id}"><strong>${esc(c.name)}</strong> \u2014 ${esc(c.phone||'')}</div>`).join('')}</div>`;
+}
+function buildUpiLink(amount,note){
+  const p=new URLSearchParams();
+  p.set('pa',DATA.settings.upiId);
+  p.set('pn',DATA.settings.payeeName||DATA.settings.businessName||'Payee');
+  p.set('am',Number(amount).toFixed(2));
+  p.set('cu','INR');
+  if(note)p.set('tn',note);
+  return 'upi://pay?'+p.toString();
+}
+function renderReceiptHtml(cust,amount,dateVal){
+  return `
+    <div class="receipt">
+      <div class="receipt-notch"></div>
+      <div class="receipt-body">
+        <img src="${BRAND_LOGO}" alt="logo" style="height:40px;width:auto;margin-bottom:6px;">
+        <div class="receipt-biz">${esc(DATA.settings.businessName||t('appName'))}</div>
+        <div class="receipt-sub">${esc(t('scanToPay'))}</div>
+        <div class="receipt-dash"></div>
+        <div class="receipt-amt">${fmtMoney(amount)}</div>
+        <div id="qrHolder"></div>
+        <div style="text-align:left;margin-top:10px;">
+          <div class="receipt-line"><span>${esc(t('name'))}</span><span>${esc(cust.name)}</span></div>
+          <div class="receipt-line"><span>${esc(t('date'))}</span><span>${fmtDate(dateVal)}</span></div>
+          <div class="receipt-line"><span>${esc(t('upiIdLabel'))}</span><span>${esc(DATA.settings.upiId)}</span></div>
+        </div>
+      </div>
+      <div class="receipt-notch" style="transform:rotate(180deg);"></div>
+    </div>
+  `;
+}
+
+/* ================= REPORTS ================= */
+function renderReports(){
+  ensureReportFilters();
+  const f=REPORT_FILTERS;
+  const filtered=DATA.payments.filter(p=>{
+    if(p.date<f.from||p.date>f.to)return false;
+    if(f.employeeId&&p.employeeId!==f.employeeId)return false;
+    if(f.areaId){const c=getCustomer(p.customerId);if(!c||c.areaId!==f.areaId)return false;}
+    return true;
+  }).sort((a,b)=>b.date.localeCompare(a.date));
+  const total=filtered.reduce((s,p)=>s+Number(p.amount),0);
+  return `
+    <div class="page-head">
+      <div><h1>${esc(t('reportsTitle'))}</h1></div>
+      <button class="btn secondary no-print" id="printBtn">\uD83D\uDDA8 ${esc(t('print'))}</button>
+    </div>
+    <div class="filter-bar no-print">
+      <div class="filter-item"><label>${esc(t('from'))}</label><input type="date" id="rf_from" value="${f.from}"></div>
+      <div class="filter-item"><label>${esc(t('to'))}</label><input type="date" id="rf_to" value="${f.to}"></div>
+      <div class="filter-item"><label>${esc(t('employeeFilter'))}</label>
+        <select id="rf_emp"><option value="">${esc(t('allEmployees'))}</option>${DATA.employees.map(e=>`<option value="${e.id}" ${f.employeeId===e.id?'selected':''}>${esc(e.name)}</option>`).join('')}</select>
+      </div>
+      <div class="filter-item"><label>${esc(t('areaFilter'))}</label>
+        <select id="rf_area"><option value="">${esc(t('allAreas'))}</option>${DATA.areas.map(a=>`<option value="${a.id}" ${f.areaId===a.id?'selected':''}>${esc(a.name)}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="card card-pad" style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+      <div class="stat-label">${esc(t('totalCollected'))} \u2022 ${filtered.length} ${esc(t('entries'))}</div>
+      <div class="stat-value">${fmtMoney(total)}</div>
+    </div>
+    <div class="card" style="overflow-x:auto;">
+      ${filtered.length===0?`<div class="empty-state"><div class="big">\uD83D\uDCC4</div>${esc(t('noPayments'))}</div>`:`
+      <table>
+        <thead><tr><th>${esc(t('tblDate'))}</th><th>${esc(t('tblCustomer'))}</th><th>${esc(t('tblArea'))}</th><th>${esc(t('tblPackage'))}</th><th>${esc(t('tblEmployee'))}</th><th>${esc(t('tblMethod'))}</th><th>${esc(t('tblAmount'))}</th></tr></thead>
+        <tbody>
+          ${filtered.map(p=>{
+            const c=getCustomer(p.customerId)||{};
+            const area=getArea(c.areaId), pkg=getPackage(c.packageId), emp=getEmployee(p.employeeId);
+            return `<tr><td>${fmtDate(p.date)}</td><td>${esc(c.name||'-')}</td><td>${esc(area?area.name:'-')}</td><td>${esc(pkg?pkg.name:'-')}</td><td>${esc(emp?emp.name:'-')}</td><td>${esc(p.method==='upi'?t('upi'):t('cash'))}</td><td>${fmtMoney(p.amount)}</td></tr>`;
+          }).join('')}
+        </tbody>
+      </table>`}
+    </div>
+  `;
+}
+
+/* ================= MANAGE ================= */
+function renderManage(){
+  return `
+    <div class="page-head"><div><h1>${esc(t('manageTitle'))}</h1></div></div>
+    <div class="subtabs">
+      ${manageSubtab('areas',t('areas'))}
+      ${manageSubtab('packages',t('packages'))}
+      ${manageSubtab('employees',t('employees'))}
+      ${manageSubtab('settings',t('settings'))}
+    </div>
+    ${MANAGE_SUB==='areas'?renderAreasManage():''}
+    ${MANAGE_SUB==='packages'?renderPackagesManage():''}
+    ${MANAGE_SUB==='employees'?renderEmployeesManage():''}
+    ${MANAGE_SUB==='settings'?renderSettingsManage():''}
+  `;
+}
+function manageSubtab(id,label){return `<button class="subtab ${MANAGE_SUB===id?'active':''}" data-msub="${id}">${esc(label)}</button>`;}
+
+function renderAreasManage(){
+  return `
+    <div style="margin-bottom:14px;"><button class="btn" id="addAreaBtn">${ICONS.plus} ${esc(t('addArea'))}</button></div>
+    ${DATA.areas.length===0?`<div class="empty-state card"><div class="big">\uD83D\uDCCD</div>${esc(t('noAreas'))}</div>`:`
+    <div class="list">
+      ${DATA.areas.map(a=>{
+        const count=DATA.customers.filter(c=>c.areaId===a.id).length;
+        return `<div class="row-card"><div class="row-main"><div class="row-title">${esc(a.name)}</div><div class="row-sub">${count} ${esc(t('usedBy'))} ${esc(t('customersCount'))}</div></div>
+        <div class="row-actions"><button class="icon-btn" data-edit-area="${a.id}">${ICONS.edit}</button><button class="icon-btn" data-del-area="${a.id}">${ICONS.trash}</button></div></div>`;
+      }).join('')}
+    </div>`}
+  `;
+}
+function renderPackagesManage(){
+  const typeLabel=(ty)=>ty==='cable'?t('cableTv'):ty==='internet'?t('internet'):t('combo');
+  return `
+    <div style="margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap;"><button class="btn" id="addPkgBtn">${ICONS.plus} ${esc(t('addPackage'))}</button><button class="btn secondary" id="bulkAddPkgBtn">${ICONS.plus} ${esc(t('bulkAddPkg'))}</button></div>
+    ${DATA.packages.length===0?`<div class="empty-state card"><div class="big">\uD83D\uDCE6</div>${esc(t('noPackages'))}</div>`:`
+    <div class="list">
+      ${DATA.packages.map(p=>{
+        const count=DATA.customers.filter(c=>c.packageId===p.id).length;
+        return `<div class="row-card"><div class="row-main"><div class="row-title">${esc(p.name)}</div><div class="row-sub"><span>${esc(typeLabel(p.type))}</span><span>\u2022</span><span>${fmtMoney(p.price)}${esc(t('month'))}</span><span>\u2022</span><span>${count} ${esc(t('customersCount'))}</span></div></div>
+        <div class="row-actions"><button class="icon-btn" data-edit-pkg="${p.id}">${ICONS.edit}</button><button class="icon-btn" data-del-pkg="${p.id}">${ICONS.trash}</button></div></div>`;
+      }).join('')}
+    </div>`}
+  `;
+}
+function renderEmployeesManage(){
+  return `
+    <div style="margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap;"><button class="btn" id="addEmpBtn">${ICONS.plus} ${esc(t('addEmployee'))}</button><button class="btn secondary" id="bulkAddEmpBtn">${ICONS.plus} ${esc(t('bulkAddEmp'))}</button></div>
+    ${DATA.employees.length===0?`<div class="empty-state card"><div class="big">\uD83E\uDDD1\u200D\uD83D\uDCBC</div>${esc(t('noEmployees'))}</div>`:`
+    <div class="list">
+      ${DATA.employees.map(e=>{
+        const count=DATA.payments.filter(p=>p.employeeId===e.id).length;
+        const st=e.status||'active';
+        return `<div class="row-card"><div class="row-main"><div class="row-title">${esc(e.name)}</div><div class="row-sub">
+          ${e.role?`<span>${esc(e.role)}</span><span>\u2022</span>`:''}${e.phone?`<span>${esc(e.phone)}</span><span>\u2022</span>`:''}<span>${count} ${esc(t('entries'))}</span></div></div>
+        <span class="pill ${st==='active'?'green':'grey'}">${st==='active'?esc(t('active')):esc(t('inactive'))}</span>
+        <div class="row-actions"><button class="icon-btn" data-edit-emp="${e.id}">${ICONS.edit}</button><button class="icon-btn" data-del-emp="${e.id}">${ICONS.trash}</button></div></div>`;
+      }).join('')}
+    </div>`}
+  `;
+}
+function renderSettingsManage(){
+  const s=DATA.settings;
+  return `
+    <div class="card card-pad" style="max-width:460px;margin-bottom:16px;">
+      <div class="field"><label>${esc(t('businessName'))}</label><input type="text" id="s_biz" value="${esc(s.businessName)}"></div>
+      <div class="field"><label>${esc(t('payeeName'))}</label><input type="text" id="s_payee" value="${esc(s.payeeName)}"></div>
+      <div class="field"><label>${esc(t('upiIdLabel'))}</label><input type="text" id="s_upi" placeholder="yourname@bank" value="${esc(s.upiId)}">
+        <div class="row-sub" style="margin-top:6px;">${esc(t('upiHint'))}</div>
+      </div>
+      <button class="btn block" id="saveSettingsBtn">${esc(t('saveSettings'))}</button>
+    </div>
+    <div class="card card-pad" style="max-width:460px;">
+      <div class="section-title">${esc(t('backupTitle'))}</div>
+      <div class="row-sub" style="margin-bottom:14px;">${esc(t('backupDesc'))}</div>
+      <button class="btn secondary block" id="downloadBackupBtn" style="margin-bottom:9px;">\u2B07\uFE0F ${esc(t('downloadBackup'))}</button>
+      <button class="btn block" id="driveBackupBtn" style="margin-bottom:6px;">\uD83D\uDCC1 ${esc(t('backupToDrive'))}</button>
+      <div class="row-sub" style="margin-bottom:16px;">${esc(t('driveSentHint'))}</div>
+      <button class="btn secondary block" id="openRestoreBtn" style="margin-bottom:9px;">\u2B06\uFE0F ${esc(t('restoreBackup'))}</button>
+      <button class="btn secondary block" id="askDriveRestoreBtn">\uD83D\uDCAC ${esc(t('askDriveRestore'))}</button>
+    </div>
+  `;
+}
+
+/* ================= EVENT BINDING (per tab) ================= */
+function bindMainEvents(){
+  if(TAB==='home'){
+    const a=document.getElementById('qaAddCustomer'); if(a)a.addEventListener('click',()=>openCustomerModal(null));
+    const b=document.getElementById('qaCollect'); if(b)b.addEventListener('click',()=>{TAB='collect';render();});
+    const g=document.getElementById('gotoSettingsBtn'); if(g)g.addEventListener('click',()=>{TAB='manage';MANAGE_SUB='settings';render();});
+  }
+  if(TAB==='customers'){
+    document.getElementById('addCustomerBtn').addEventListener('click',()=>openCustomerModal(null));
+    document.getElementById('bulkAddBtn').addEventListener('click',openBulkAddModal);
+    const si=document.getElementById('custSearchInput');
+    si.addEventListener('input',(e)=>{CUSTOMER_SEARCH=e.target.value;renderMain();
+      const el=document.getElementById('custSearchInput'); if(el){el.focus();el.selectionStart=el.selectionEnd=el.value.length;}
+    });
+    document.querySelectorAll('[data-statement]').forEach(b=>b.addEventListener('click',()=>openStatementModal(getCustomer(b.getAttribute('data-statement')))));
+    document.querySelectorAll('[data-edit-customer]').forEach(b=>b.addEventListener('click',()=>openCustomerModal(getCustomer(b.getAttribute('data-edit-customer')))));
+    document.querySelectorAll('[data-del-customer]').forEach(b=>b.addEventListener('click',()=>{
+      if(confirm(t('confirmDelete'))){DATA.customers=DATA.customers.filter(c=>c.id!==b.getAttribute('data-del-customer'));saveData();renderMain();}
+    }));
+  }
+  if(TAB==='collect'){
+    const cs=document.getElementById('collectSearch');
+    if(cs){
+      cs.addEventListener('input',(e)=>{COLLECT_SEARCH=e.target.value;renderMain();
+        const el=document.getElementById('collectSearch'); if(el){el.focus();el.selectionStart=el.selectionEnd=el.value.length;}
+      });
+      document.querySelectorAll('[data-pick-cust]').forEach(el=>el.addEventListener('click',()=>{
+        COLLECT_CUSTOMER_ID=el.getAttribute('data-pick-cust');COLLECT_SEARCH='';QR_SHOWN=false;renderMain();
+      }));
+    }
+    const chg=document.getElementById('changeCustBtn'); if(chg)chg.addEventListener('click',()=>{COLLECT_CUSTOMER_ID=null;QR_SHOWN=false;renderMain();});
+    document.querySelectorAll('#methodGroup .radio-opt').forEach(el=>el.addEventListener('click',()=>{
+      COLLECT_METHOD=el.getAttribute('data-method');QR_SHOWN=false;renderMain();
+    }));
+    const genBtn=document.getElementById('genQrBtn');
+    if(genBtn)genBtn.addEventListener('click',()=>{
+      const cust=getCustomer(COLLECT_CUSTOMER_ID);
+      const amount=Number(document.getElementById('c_amount').value||0);
+      const dateVal=document.getElementById('c_date').value||todayStr();
+      if(!amount||amount<=0)return alert(t('amount'));
+      document.getElementById('qrArea').innerHTML=renderReceiptHtml(cust,amount,dateVal);
+      const holder=document.getElementById('qrHolder');
+      try{
+        new QRCode(holder,{text:buildUpiLink(amount,cust.name+' - '+(DATA.settings.businessName||'')),width:170,height:170,colorDark:'#1C2430',colorLight:'#ffffff'});
+      }catch(e){holder.innerHTML='<div class="row-sub">QR unavailable</div>';}
+    });
+    const saveBtn=document.getElementById('savePaymentBtn');
+    if(saveBtn)saveBtn.addEventListener('click',()=>{
+      const amount=Number(document.getElementById('c_amount').value||0);
+      if(!amount||amount<=0)return alert(t('amount'));
+      const dateVal=document.getElementById('c_date').value||todayStr();
+      const employeeId=document.getElementById('c_employee').value;
+      DATA.payments.push({id:uid(),customerId:COLLECT_CUSTOMER_ID,amount,date:dateVal,employeeId,method:COLLECT_METHOD,createdAt:Date.now()});
+      const cust=getCustomer(COLLECT_CUSTOMER_ID);
+      if(cust&&cust.openingBalance>0){
+        cust.openingBalance=Math.max(0,Number(cust.openingBalance)-amount);
+      }
+      saveData();
+      LAST_SAVED_PAYMENT={customerId:COLLECT_CUSTOMER_ID,amount,date:dateVal};
+      COLLECT_METHOD='cash';QR_SHOWN=false;
+      renderMain();
+    });
+    const shareBtn=document.getElementById('shareReceiptBtn');
+    if(shareBtn)shareBtn.addEventListener('click',()=>{
+      const c=getCustomer(LAST_SAVED_PAYMENT.customerId);
+      openWhatsApp(c&&c.phone,buildReceiptMessage(c,LAST_SAVED_PAYMENT.amount,LAST_SAVED_PAYMENT.date));
+    });
+    const againBtn=document.getElementById('collectAnotherBtn');
+    if(againBtn)againBtn.addEventListener('click',()=>{LAST_SAVED_PAYMENT=null;COLLECT_CUSTOMER_ID=null;renderMain();});
+    const doneBtn=document.getElementById('collectDoneBtn');
+    if(doneBtn)doneBtn.addEventListener('click',()=>{LAST_SAVED_PAYMENT=null;COLLECT_CUSTOMER_ID=null;TAB='home';render();});
+  }
+  if(TAB==='tickets'){
+    document.getElementById('addTicketBtn').addEventListener('click',openTicketModal);
+    document.querySelectorAll('[data-tfilter]').forEach(b=>b.addEventListener('click',()=>{TICKET_FILTER=b.getAttribute('data-tfilter');renderMain();}));
+    document.querySelectorAll('[data-tstart]').forEach(b=>b.addEventListener('click',()=>{
+      const tk=DATA.tickets.find(x=>x.id===b.getAttribute('data-tstart')); if(tk){tk.status='inprogress';saveData();renderMain();}
+    }));
+    document.querySelectorAll('[data-tresolve]').forEach(b=>b.addEventListener('click',()=>{
+      const tk=DATA.tickets.find(x=>x.id===b.getAttribute('data-tresolve')); if(tk){tk.status='resolved';tk.resolvedAt=Date.now();saveData();renderMain();}
+    }));
+    document.querySelectorAll('[data-treopen]').forEach(b=>b.addEventListener('click',()=>{
+      const tk=DATA.tickets.find(x=>x.id===b.getAttribute('data-treopen')); if(tk){tk.status='open';saveData();renderMain();}
+    }));
+    document.querySelectorAll('[data-del-ticket]').forEach(b=>b.addEventListener('click',()=>{
+      if(confirm(t('confirmDelete'))){DATA.tickets=DATA.tickets.filter(x=>x.id!==b.getAttribute('data-del-ticket'));saveData();renderMain();}
+    }));
+  }
+  if(TAB==='reports'){
+    ensureReportFilters();
+    const bind=(id,key)=>{const el=document.getElementById(id); if(el)el.addEventListener('change',(e)=>{REPORT_FILTERS[key]=e.target.value;renderMain();});};
+    bind('rf_from','from');bind('rf_to','to');bind('rf_emp','employeeId');bind('rf_area','areaId');
+    document.getElementById('printBtn').addEventListener('click',()=>window.print());
+  }
+  if(TAB==='manage'){
+    document.querySelectorAll('[data-msub]').forEach(b=>b.addEventListener('click',()=>{MANAGE_SUB=b.getAttribute('data-msub');renderMain();}));
+    bindManageSubEvents();
+  }
+}
+
+function bindManageSubEvents(){
+  if(MANAGE_SUB==='areas'){
+    document.getElementById('addAreaBtn').addEventListener('click',()=>openAreaModal(null));
+    document.querySelectorAll('[data-edit-area]').forEach(b=>b.addEventListener('click',()=>openAreaModal(getArea(b.getAttribute('data-edit-area')))));
+    document.querySelectorAll('[data-del-area]').forEach(b=>b.addEventListener('click',()=>{
+      const id=b.getAttribute('data-del-area');
+      const count=DATA.customers.filter(c=>c.areaId===id).length;
+      const msg=count>0?`${t('confirmDelete')} (${count} ${t('customersCount')})`:t('confirmDelete');
+      if(confirm(msg)){DATA.areas=DATA.areas.filter(a=>a.id!==id);saveData();renderMain();}
+    }));
+  }
+  if(MANAGE_SUB==='packages'){
+    document.getElementById('addPkgBtn').addEventListener('click',()=>openPackageModal(null));
+    document.getElementById('bulkAddPkgBtn').addEventListener('click',openBulkAddPkgModal);
+    document.querySelectorAll('[data-edit-pkg]').forEach(b=>b.addEventListener('click',()=>openPackageModal(getPackage(b.getAttribute('data-edit-pkg')))));
+    document.querySelectorAll('[data-del-pkg]').forEach(b=>b.addEventListener('click',()=>{
+      const id=b.getAttribute('data-del-pkg');
+      const count=DATA.customers.filter(c=>c.packageId===id).length;
+      const msg=count>0?`${t('confirmDelete')} (${count} ${t('customersCount')})`:t('confirmDelete');
+      if(confirm(msg)){DATA.packages=DATA.packages.filter(p=>p.id!==id);saveData();renderMain();}
+    }));
+  }
+  if(MANAGE_SUB==='employees'){
+    document.getElementById('addEmpBtn').addEventListener('click',()=>openEmployeeModal(null));
+    document.getElementById('bulkAddEmpBtn').addEventListener('click',openBulkAddEmpModal);
+    document.querySelectorAll('[data-edit-emp]').forEach(b=>b.addEventListener('click',()=>openEmployeeModal(getEmployee(b.getAttribute('data-edit-emp')))));
+    document.querySelectorAll('[data-del-emp]').forEach(b=>b.addEventListener('click',()=>{
+      if(confirm(t('confirmDelete'))){DATA.employees=DATA.employees.filter(e=>e.id!==b.getAttribute('data-del-emp'));saveData();renderMain();}
+    }));
+  }
+  if(MANAGE_SUB==='settings'){
+    document.getElementById('saveSettingsBtn').addEventListener('click',()=>{
+      DATA.settings.businessName=document.getElementById('s_biz').value.trim();
+      DATA.settings.payeeName=document.getElementById('s_payee').value.trim();
+      DATA.settings.upiId=document.getElementById('s_upi').value.trim();
+      saveData();alert(t('settingsSaved'));render();
+    });
+    document.getElementById('downloadBackupBtn').addEventListener('click',downloadBackupFile);
+    document.getElementById('driveBackupBtn').addEventListener('click',sendBackupToDrive);
+    document.getElementById('openRestoreBtn').addEventListener('click',openRestoreModal);
+    document.getElementById('askDriveRestoreBtn').addEventListener('click',()=>{
+      if(typeof sendPrompt==='function'){
+        sendPrompt('Please find my most recent billing backup file in Google Drive and show me its JSON content so I can restore it in the app.');
+      }
+    });
+  }
+}
+
+/* ---- Backup / Restore ---- */
+function backupFileName(){return 'billing-backup-'+todayStr()+'.json';}
+function downloadBackupFile(){
+  const blob=new Blob([JSON.stringify(DATA,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=backupFileName();
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function sendBackupToDrive(){
+  if(typeof sendPrompt!=='function')return;
+  const payload=JSON.stringify(DATA);
+  const msg='Please save this billing app backup to my connected Google Drive: create a JSON file named "'+backupFileName()+'" with the raw data below, and also create a Google Sheet listing the customers and payments from it.\n\n```json\n'+payload+'\n```';
+  sendPrompt(msg);
+}
+function openRestoreModal(){
+  openModal(t('restoreBackup'),`
+    <div class="row-sub" style="margin-bottom:12px;">${esc(t('restoreHint'))}</div>
+    <div class="field"><label>${esc(t('chooseFile'))}</label><input type="file" id="restoreFileInput" accept="application/json,.json"></div>
+    <div class="field"><label>${esc(t('pasteBackupLabel'))}</label><textarea id="restoreTextArea" rows="6" style="font-family:var(--font-mono);font-size:12px;"></textarea></div>
+  `,`<button class="btn secondary" id="modalCancel">${esc(t('cancel'))}</button><button class="btn" id="modalSave">${esc(t('restore'))}</button>`);
+  document.getElementById('modalCancel').addEventListener('click',closeModal);
+  document.getElementById('restoreFileInput').addEventListener('change',(e)=>{
+    const file=e.target.files[0]; if(!file)return;
+    const reader=new FileReader();
+    reader.onload=()=>{document.getElementById('restoreTextArea').value=reader.result;};
+    reader.readAsText(file);
+  });
+  document.getElementById('modalSave').addEventListener('click',()=>{
+    const raw=document.getElementById('restoreTextArea').value.trim();
+    if(!raw)return;
+    let parsed;
+    try{ parsed=JSON.parse(raw); }catch(e){ alert(t('restoreError')); return; }
+    if(!parsed||typeof parsed!=='object'||!parsed.customers||!parsed.settings){ alert(t('restoreError')); return; }
+    if(!confirm(t('restoreConfirm')))return;
+    DATA=parsed;
+    saveData();closeModal();render();
+    alert(t('restoreSuccess'));
+  });
+}
+
+/* ---- Area modal ---- */
+function openAreaModal(area){
+  openModal(area?t('edit'):t('addArea'),
+    `<div class="field"><label>${esc(t('areaName'))}</label><input type="text" id="a_name" value="${area?esc(area.name):''}"></div>`,
+    `<button class="btn secondary" id="modalCancel">${esc(t('cancel'))}</button><button class="btn" id="modalSave">${esc(t('save'))}</button>`
+  );
+  document.getElementById('modalCancel').addEventListener('click',closeModal);
+  document.getElementById('modalSave').addEventListener('click',()=>{
+    const name=document.getElementById('a_name').value.trim(); if(!name)return;
+    if(area){area.name=name;} else {DATA.areas.push({id:uid(),name});}
+    saveData();closeModal();renderMain();
+  });
+}
+/* ---- Package modal ---- */
+function openPackageModal(pkg){
+  openModal(pkg?t('edit'):t('addPackage'),`
+    <div class="field"><label>${esc(t('packageName'))}</label><input type="text" id="p_name" value="${pkg?esc(pkg.name):''}"></div>
+    <div class="field"><label>${esc(t('packageType'))}</label>
+      <div class="radio-group" id="p_type_group">
+        <div class="radio-opt ${(!pkg||pkg.type==='cable')?'checked':''}" data-type="cable">${esc(t('cableTv'))}</div>
+        <div class="radio-opt ${(pkg&&pkg.type==='internet')?'checked':''}" data-type="internet">${esc(t('internet'))}</div>
+        <div class="radio-opt ${(pkg&&pkg.type==='combo')?'checked':''}" data-type="combo">${esc(t('combo'))}</div>
+      </div>
+    </div>
+    <div class="field"><label>${esc(t('packagePrice'))}</label><input type="number" id="p_price" value="${pkg?pkg.price:''}"></div>
+  `,`<button class="btn secondary" id="modalCancel">${esc(t('cancel'))}</button><button class="btn" id="modalSave">${esc(t('save'))}</button>`);
+  document.querySelectorAll('#p_type_group .radio-opt').forEach(el=>el.addEventListener('click',()=>{
+    document.querySelectorAll('#p_type_group .radio-opt').forEach(x=>x.classList.remove('checked'));el.classList.add('checked');
+  }));
+  document.getElementById('modalCancel').addEventListener('click',closeModal);
+  document.getElementById('modalSave').addEventListener('click',()=>{
+    const name=document.getElementById('p_name').value.trim();
+    const price=Number(document.getElementById('p_price').value||0);
+    const type=document.querySelector('#p_type_group .checked').getAttribute('data-type');
+    if(!name)return;
+    if(pkg){pkg.name=name;pkg.price=price;pkg.type=type;} else {DATA.packages.push({id:uid(),name,price,type});}
+    saveData();closeModal();renderMain();
+  });
+}
+/* ---- Employee modal ---- */
+function openEmployeeModal(emp){
+  openModal(emp?t('edit'):t('addEmployee'),`
+    <div class="field"><label>${esc(t('employeeName'))}</label><input type="text" id="e_name" value="${emp?esc(emp.name):''}"></div>
+    <div class="field-row">
+      <div class="field"><label>${esc(t('employeePhone'))}</label><input type="tel" id="e_phone" value="${emp?esc(emp.phone||''):''}"></div>
+      <div class="field"><label>${esc(t('employeeRole'))}</label><input type="text" id="e_role" value="${emp?esc(emp.role||''):''}"></div>
+    </div>
+    <div class="field"><label>${esc(t('status'))}</label>
+      <div class="radio-group" id="e_status_group">
+        <div class="radio-opt ${(!emp||emp.status!=='inactive')?'checked':''}" data-status="active">${esc(t('active'))}</div>
+        <div class="radio-opt ${(emp&&emp.status==='inactive')?'checked':''}" data-status="inactive">${esc(t('inactive'))}</div>
+      </div>
+    </div>
+  `,`<button class="btn secondary" id="modalCancel">${esc(t('cancel'))}</button><button class="btn" id="modalSave">${esc(t('save'))}</button>`);
+  document.querySelectorAll('#e_status_group .radio-opt').forEach(el=>el.addEventListener('click',()=>{
+    document.querySelectorAll('#e_status_group .radio-opt').forEach(x=>x.classList.remove('checked'));el.classList.add('checked');
+  }));
+  document.getElementById('modalCancel').addEventListener('click',closeModal);
+  document.getElementById('modalSave').addEventListener('click',()=>{
+    const name=document.getElementById('e_name').value.trim(); if(!name)return;
+    const phone=document.getElementById('e_phone').value.trim();
+    const role=document.getElementById('e_role').value.trim();
+    const status=document.querySelector('#e_status_group .checked').getAttribute('data-status');
+    if(emp){emp.name=name;emp.phone=phone;emp.role=role;emp.status=status;}
+    else {DATA.employees.push({id:uid(),name,phone,role,status});}
+    saveData();closeModal();renderMain();
+  });
+}
+
+/* ---- Customer Statement ---- */
+function openStatementModal(cust){
+  const pkg=getPackage(cust.packageId);
+  const area=getArea(cust.areaId);
+  const bal=Number(cust.openingBalance||0);
+  const lp=lastPaymentDate(cust.id);
+  openModal(t('statementTitle'),`
+    <div class="row-card" style="margin-bottom:14px;">
+      <div class="row-main">
+        <div class="row-title">${esc(cust.name)}</div>
+        <div class="row-sub">
+          <div class="receipt-line"><span>${esc(t('area'))}</span><span>${esc(area?area.name:'-')}</span></div>
+          <div class="receipt-line"><span>${esc(t('statementPackage'))}</span><span>${esc(pkg?pkg.name+' \u2014 '+fmtMoney(pkg.price)+t('month'):'-')}</span></div>
+          <div class="receipt-line"><span>${esc(t('statementBalance'))}</span><span style="color:${bal>0?'var(--red)':'var(--green)'};">${fmtMoney(bal)}</span></div>
+          <div class="receipt-line"><span>${esc(t('statementLastPayment'))}</span><span>${lp?fmtDate(lp):esc(t('never'))||'-'}</span></div>
+        </div>
+      </div>
+    </div>
+    ${!cust.phone?`<div class="banner">${esc(t('noPhoneWarn'))}</div>`:''}
+  `,`
+    <button class="btn secondary" id="modalCancel">${esc(t('cancel'))}</button>
+    <button class="btn" id="shareWaBtn">${ICONS.chat} ${esc(t('shareWhatsApp'))}</button>
+  `);
+  document.getElementById('modalCancel').addEventListener('click',closeModal);
+  document.getElementById('shareWaBtn').addEventListener('click',()=>openWhatsApp(cust.phone,buildStatementMessage(cust)));
+}
+
+/* ---- Tickets / Complaints ---- */
+let TICKET_FILTER='';
+let TICKET_CUST_ID='';
+function renderTickets(){
+  const filtered=DATA.tickets.filter(tk=>!TICKET_FILTER||tk.status===TICKET_FILTER).sort((a,b)=>b.createdAt-a.createdAt);
+  const openCount=DATA.tickets.filter(tk=>tk.status==='open').length;
+  const typeLabel=(ty)=>({noSignal:t('typeNoSignal'),netIssue:t('typeNetIssue'),billingIssue:t('typeBillingIssue'),stb:t('typeSTB'),other:t('typeOther')}[ty]||ty);
+  const statusLabel=(st)=>({open:t('statusOpen'),inprogress:t('statusInProgress'),resolved:t('statusResolved')}[st]||st);
+  return `
+    <div class="page-head">
+      <div><h1>${esc(t('ticketsTitle'))}</h1><p class="page-sub">${openCount} ${esc(t('openTickets'))}</p></div>
+      <button class="btn" id="addTicketBtn">${ICONS.plus} ${esc(t('addTicket'))}</button>
+    </div>
+    <div class="subtabs">
+      <button class="subtab ${TICKET_FILTER===''?'active':''}" data-tfilter="">${esc(t('allStatuses'))}</button>
+      <button class="subtab ${TICKET_FILTER==='open'?'active':''}" data-tfilter="open">${esc(t('statusOpen'))}</button>
+      <button class="subtab ${TICKET_FILTER==='inprogress'?'active':''}" data-tfilter="inprogress">${esc(t('statusInProgress'))}</button>
+      <button class="subtab ${TICKET_FILTER==='resolved'?'active':''}" data-tfilter="resolved">${esc(t('statusResolved'))}</button>
+    </div>
+    ${filtered.length===0?`<div class="empty-state card"><div class="big">\uD83D\uDCCB</div>${esc(t('noTickets'))}</div>`:`
+    <div class="list">
+      ${filtered.map(tk=>{
+        const c=getCustomer(tk.customerId);
+        const emp=getEmployee(tk.employeeId);
+        const pillClass=tk.status==='open'?'amber':tk.status==='inprogress'?'green':'grey';
+        return `<div class="row-card">
+          <div class="row-main">
+            <div class="row-title">${esc(c?c.name:'-')} \u2014 ${esc(typeLabel(tk.type))}</div>
+            <div class="row-sub"><span>${fmtDate(tk.date)}</span><span>\u2022</span><span>${esc(emp?emp.name:t('noAssignee'))}</span>${tk.desc?`<span>\u2022</span><span>${esc(tk.desc)}</span>`:''}</div>
+          </div>
+          <span class="pill ${pillClass}">${esc(statusLabel(tk.status))}</span>
+          <div class="row-actions">
+            ${tk.status==='open'?`<button class="btn-sm btn secondary" data-tstart="${tk.id}">${esc(t('start'))}</button>`:''}
+            ${tk.status!=='resolved'?`<button class="btn-sm btn" data-tresolve="${tk.id}">${esc(t('resolve'))}</button>`:`<button class="btn-sm btn secondary" data-treopen="${tk.id}">${esc(t('reopen'))}</button>`}
+            <button class="icon-btn" data-del-ticket="${tk.id}">${ICONS.trash}</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`}
+  `;
+}
+function ticketFormHtml(){
+  const empOpts=DATA.employees.map(e=>`<option value="${e.id}">${esc(e.name)}</option>`).join('');
+  return `
+    <div class="field customer-search">
+      <label>${esc(t('ticketCustomer'))}</label>
+      <input type="text" id="tk_custSearch" placeholder="${esc(t('search'))}" autocomplete="off">
+      <div id="tk_custResults"></div>
+    </div>
+    <div class="field" id="tk_selectedWrap" style="display:none;">
+      <div class="selected-customer"><div class="name" id="tk_selectedName"></div></div>
+    </div>
+    <div class="field"><label>${esc(t('ticketType'))}</label>
+      <select id="tk_type">
+        <option value="noSignal">${esc(t('typeNoSignal'))}</option>
+        <option value="netIssue">${esc(t('typeNetIssue'))}</option>
+        <option value="billingIssue">${esc(t('typeBillingIssue'))}</option>
+        <option value="stb">${esc(t('typeSTB'))}</option>
+        <option value="other">${esc(t('typeOther'))}</option>
+      </select>
+    </div>
+    <div class="field"><label>${esc(t('assignedTo'))}</label><select id="tk_emp"><option value="">${esc(t('noAssignee'))}</option>${empOpts}</select></div>
+    <div class="field"><label>${esc(t('ticketDesc'))}</label><textarea id="tk_desc" rows="2"></textarea></div>
+  `;
+}
+function openTicketModal(){
+  TICKET_CUST_ID='';
+  openModal(t('addTicket'),ticketFormHtml(),`
+    <button class="btn secondary" id="modalCancel">${esc(t('cancel'))}</button>
+    <button class="btn" id="modalSave">${esc(t('save'))}</button>
+  `);
+  document.getElementById('modalCancel').addEventListener('click',closeModal);
+  const search=document.getElementById('tk_custSearch');
+  search.addEventListener('input',()=>{
+    const q=search.value.trim().toLowerCase();
+    const box=document.getElementById('tk_custResults');
+    if(!q){box.innerHTML='';return;}
+    const matches=DATA.customers.filter(c=>c.name.toLowerCase().includes(q)||(c.phone||'').includes(q)).slice(0,8);
+    box.innerHTML=matches.length?`<div class="suggest-list">${matches.map(c=>`<div class="suggest-item" data-tkpick="${c.id}"><strong>${esc(c.name)}</strong> \u2014 ${esc(c.phone||'')}</div>`).join('')}</div>`:`<div class="suggest-list"><div class="suggest-item">${esc(t('noResults'))}</div></div>`;
+    document.querySelectorAll('[data-tkpick]').forEach(el=>el.addEventListener('click',()=>{
+      TICKET_CUST_ID=el.getAttribute('data-tkpick');
+      const c=getCustomer(TICKET_CUST_ID);
+      document.getElementById('tk_selectedName').textContent=c.name;
+      document.getElementById('tk_selectedWrap').style.display='block';
+      search.value='';box.innerHTML='';
+    }));
+  });
+  document.getElementById('modalSave').addEventListener('click',()=>{
+    if(!TICKET_CUST_ID){alert(t('selectCustomerFirst'));return;}
+    DATA.tickets.push({
+      id:uid(),customerId:TICKET_CUST_ID,type:document.getElementById('tk_type').value,
+      employeeId:document.getElementById('tk_emp').value,desc:document.getElementById('tk_desc').value.trim(),
+      status:'open',date:todayStr(),createdAt:Date.now()
+    });
+    saveData();closeModal();renderMain();
+  });
+}
+
+/* ---- Bulk Add Employees ---- */
+function openBulkAddEmpModal(){
+  openModal(t('bulkAddEmpTitle'),`
+    <div class="row-sub" style="margin-bottom:8px;">${esc(t('bulkAddEmpHint'))}</div>
+    <div class="row-sub" style="margin-bottom:4px;font-weight:700;">${esc(t('bulkAddEmpFormat'))}</div>
+    <div class="row-sub" style="margin-bottom:12px;">${esc(t('bulkAddEmpOptional'))}</div>
+    <div class="field"><label>${esc(t('chooseFile'))}</label><input type="file" id="bulkEmpFileInput" accept=".txt,.csv,text/plain"></div>
+    <div class="field"><textarea id="bulkEmpText" rows="8" style="font-family:var(--font-mono);font-size:12.5px;" placeholder="${esc(t('bulkAddEmpPlaceholder'))}"></textarea></div>
+  `,`<button class="btn secondary" id="modalCancel">${esc(t('cancel'))}</button><button class="btn" id="modalSave">${esc(t('import'))}</button>`);
+  document.getElementById('modalCancel').addEventListener('click',closeModal);
+  document.getElementById('bulkEmpFileInput').addEventListener('change',(e)=>{
+    const file=e.target.files[0]; if(!file)return;
+    const reader=new FileReader();
+    reader.onload=()=>{document.getElementById('bulkEmpText').value=reader.result;};
+    reader.readAsText(file);
+  });
+  document.getElementById('modalSave').addEventListener('click',()=>{
+    runBulkEmpImport(document.getElementById('bulkEmpText').value);
+  });
+}
+function bulkEmpImportCore(raw){
+  const lines=raw.split('\n').map(l=>l.trim()).filter(l=>l.length>0);
+  let added=0,skipped=0;
+  lines.forEach(line=>{
+    const parts=line.split('|').map(p=>p.trim());
+    const name=parts[0]||'';
+    if(!name)return;
+    const phone=parts[1]||'';
+    const role=parts[2]||'';
+    const statusRaw=(parts[3]||'').toLowerCase();
+    const status=statusRaw.startsWith('inactive')?'inactive':'active';
+    const dup=DATA.employees.find(e=>e.name.trim().toLowerCase()===name.toLowerCase()&&(phone?e.phone===phone:true));
+    if(dup){skipped++;return;}
+    DATA.employees.push({id:uid(),name,phone,role,status});
+    added++;
+  });
+  return{added,skipped};
+}
+function runBulkEmpImport(raw){
+  const r=bulkEmpImportCore(raw);
+  if(r.added===0&&r.skipped===0){alert(t('noValidEmpLines'));return;}
+  saveData();closeModal();renderMain();
+  let msg=r.added+' '+t('empsToAdd');
+  if(r.skipped>0)msg+='\n'+r.skipped+' '+t('empsSkipped');
+  alert(msg);
+}
+
+/* ---- Bulk Add Customers ---- */
+function openBulkAddModal(){
+  openModal(t('bulkAddTitle'),`
+    <div class="row-sub" style="margin-bottom:8px;">${esc(t('bulkAddHint'))}</div>
+    <div class="row-sub" style="margin-bottom:4px;font-weight:700;">${esc(t('bulkAddFormat'))}</div>
+    <div class="row-sub" style="margin-bottom:12px;">${esc(t('bulkAddOptional'))}</div>
+    <div class="field"><label>${esc(t('chooseFile'))}</label><input type="file" id="bulkFileInput" accept=".txt,.csv,text/plain"></div>
+    <div class="field"><textarea id="bulkText" rows="8" style="font-family:var(--font-mono);font-size:12.5px;" placeholder="${esc(t('bulkAddPlaceholder'))}"></textarea></div>
+  `,`<button class="btn secondary" id="modalCancel">${esc(t('cancel'))}</button><button class="btn" id="modalSave">${esc(t('import'))}</button>`);
+  document.getElementById('modalCancel').addEventListener('click',closeModal);
+  document.getElementById('bulkFileInput').addEventListener('change',(e)=>{
+    const file=e.target.files[0]; if(!file)return;
+    const reader=new FileReader();
+    reader.onload=()=>{document.getElementById('bulkText').value=reader.result;};
+    reader.readAsText(file);
+  });
+  document.getElementById('modalSave').addEventListener('click',()=>{
+    const raw=document.getElementById('bulkText').value;
+    runBulkImport(raw);
+  });
+}
+function findAreaByName(name){
+  const n=name.trim().toLowerCase();
+  return DATA.areas.find(a=>a.name.trim().toLowerCase()===n);
+}
+function findPackageByName(name){
+  const n=name.trim().toLowerCase();
+  return DATA.packages.find(p=>p.name.trim().toLowerCase()===n);
+}
+function bulkImportCore(raw){
+  const lines=raw.split('\n').map(l=>l.trim()).filter(l=>l.length>0);
+  let added=0,skipped=0,newAreas=0,newPackages=0;
+  lines.forEach(line=>{
+    const parts=line.split('|').map(p=>p.trim());
+    const name=parts[0]||'';
+    if(!name)return;
+    const phone=parts[1]||'';
+    const address=parts[2]||'';
+    const areaName=parts[3]||'';
+    const packageName=parts[4]||'';
+    const connNo=parts[5]||'';
+    const balanceRaw=parts[6]||'';
+    const openingBalance=balanceRaw?(Number(balanceRaw)||0):0;
+    const statusRaw=(parts[7]||'').trim().toLowerCase();
+    const status=statusRaw.startsWith('inactive')?'inactive':'active';
+
+    const dup=connNo
+      ? DATA.customers.find(c=>c.connNo&&c.connNo.trim().toLowerCase()===connNo.trim().toLowerCase())
+      : DATA.customers.find(c=>c.name.trim().toLowerCase()===name.toLowerCase()&&(phone?c.phone===phone:true));
+    if(dup){skipped++;return;}
+
+    let areaId='';
+    if(areaName){
+      let area=findAreaByName(areaName);
+      if(!area){area={id:uid(),name:areaName};DATA.areas.push(area);newAreas++;}
+      areaId=area.id;
+    }
+    let packageId='';
+    if(packageName){
+      let pkg=findPackageByName(packageName);
+      if(!pkg){pkg={id:uid(),name:packageName,type:'cable',price:0};DATA.packages.push(pkg);newPackages++;}
+      packageId=pkg.id;
+    }
+    DATA.customers.push({id:uid(),name,phone,address,areaId,packageId,connNo,status,openingBalance,createdAt:Date.now()});
+    added++;
+  });
+  return{added,skipped,newAreas,newPackages};
+}
+function runBulkImport(raw){
+  const r=bulkImportCore(raw);
+  if(r.added===0&&r.skipped===0){alert(t('noValidLines'));return;}
+  saveData();closeModal();renderMain();
+  let msg=t('importDone')+'\n'+r.added+' '+t('customersToAdd');
+  if(r.newAreas>0)msg+='\n'+r.newAreas+' '+t('newAreasWillBeCreated');
+  if(r.newPackages>0)msg+='\n'+r.newPackages+' '+t('newPackagesWillBeCreated');
+  if(r.skipped>0)msg+='\n'+r.skipped+' '+t('skippedDuplicates');
+  alert(msg);
+}
+
+/* ---- Bulk Add Packages ---- */
+function openBulkAddPkgModal(){
+  openModal(t('bulkAddPkgTitle'),`
+    <div class="row-sub" style="margin-bottom:8px;">${esc(t('bulkAddPkgHint'))}</div>
+    <div class="row-sub" style="margin-bottom:4px;font-weight:700;">${esc(t('bulkAddPkgFormat'))}</div>
+    <div class="row-sub" style="margin-bottom:12px;">${esc(t('bulkAddPkgOptional'))}</div>
+    <div class="field"><label>${esc(t('chooseFile'))}</label><input type="file" id="bulkPkgFileInput" accept=".txt,.csv,text/plain"></div>
+    <div class="field"><textarea id="bulkPkgText" rows="8" style="font-family:var(--font-mono);font-size:12.5px;" placeholder="${esc(t('bulkAddPkgPlaceholder'))}"></textarea></div>
+  `,`<button class="btn secondary" id="modalCancel">${esc(t('cancel'))}</button><button class="btn" id="modalSave">${esc(t('import'))}</button>`);
+  document.getElementById('modalCancel').addEventListener('click',closeModal);
+  document.getElementById('bulkPkgFileInput').addEventListener('change',(e)=>{
+    const file=e.target.files[0]; if(!file)return;
+    const reader=new FileReader();
+    reader.onload=()=>{document.getElementById('bulkPkgText').value=reader.result;};
+    reader.readAsText(file);
+  });
+  document.getElementById('modalSave').addEventListener('click',()=>{
+    runBulkPkgImport(document.getElementById('bulkPkgText').value);
+  });
+}
+function bulkPkgImportCore(raw){
+  const lines=raw.split('\n').map(l=>l.trim()).filter(l=>l.length>0);
+  let added=0,skipped=0;
+  lines.forEach(line=>{
+    const parts=line.split('|').map(p=>p.trim());
+    const name=parts[0]||'';
+    if(!name)return;
+    let type=(parts[1]||'').toLowerCase();
+    if(type!=='cable'&&type!=='internet'&&type!=='combo')type='cable';
+    const price=Number(parts[2]||0)||0;
+    const dup=findPackageByName(name);
+    if(dup){skipped++;return;}
+    DATA.packages.push({id:uid(),name,type,price});
+    added++;
+  });
+  return{added,skipped};
+}
+function runBulkPkgImport(raw){
+  const r=bulkPkgImportCore(raw);
+  if(r.added===0&&r.skipped===0){alert(t('noValidPkgLines'));return;}
+  saveData();closeModal();renderMain();
+  let msg=r.added+' '+t('pkgsToAdd');
+  if(r.skipped>0)msg+='\n'+r.skipped+' '+t('pkgsSkipped');
+  alert(msg);
+}
+
+/* ================= INIT ================= */
+loadData();
+</script>
+</body>
+</html>
